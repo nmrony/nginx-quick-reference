@@ -6,6 +6,8 @@ Go to the **[Table of Contents](https://github.com/trimstray/nginx-admins-handbo
   * [Directories and files](#directories-and-files)
   * [Commands](#commands)
   * [Processes](#processes)
+    * [CPU pinning](#cpu-pinning)
+    * [Shutdown of worker processes](#shutdown-of-worker-processes)
   * [Configuration syntax](#configuration-syntax)
     * [Comments](#comments)
     * [End of lines](#end-of-lines)
@@ -26,6 +28,7 @@ Go to the **[Table of Contents](https://github.com/trimstray/nginx-admins-handbo
     * [Handle incoming connections](#handle-incoming-connections)
     * [Matching location](#matching-location)
     * [rewrite vs return](#rewrite-vs-return)
+    * [URL redirections](#url-redirections)
     * [try_files directive](#try_files-directive)
     * [if, break, and set](#if-break-and-set)
     * [root vs alias](#root-vs-alias)
@@ -35,21 +38,24 @@ Go to the **[Table of Contents](https://github.com/trimstray/nginx-admins-handbo
     * [uri vs request_uri](#uri-vs-request_uri)
   * [Compression and decompression](#compression-and-decompression)
     * [What is the best NGINX compression gzip level?](#what-is-the-best-nginx-compression-gzip-level)
+  * [Hash tables](#hash-tables)
+    * [Server names hash table](#server-names-hash-table)
   * [Log files](#log-files)
     * [Conditional logging](#conditional-logging)
     * [Manually log rotation](#manually-log-rotation)
     * [Error log severity levels](#error-log-severity-levels)
     * [How to log the start time of a request?](#how-to-log-the-start-time-of-a-request)
     * [How to log the HTTP request body?](#how-to-log-the-http-request-body)
+    * [NGINX upstream variables returns 2 values](#nginx-upstream-variables-returns-2-values)
   * [Reverse proxy](#reverse-proxy)
     * [Passing requests](#passing-requests)
     * [Trailing slashes](#trailing-slashes)
-    * [Response headers](#response-headers)
     * [Passing headers to the backend](#passing-headers-to-the-backend)
       * [Importance of the Host header](#importance-of-the-host-header)
       * [Redirects and X-Forwarded-Proto](#redirects-and-x-forwarded-proto)
       * [A warning about the X-Forwarded-For](#a-warning-about-the-x-forwarded-for)
       * [Improve extensibility with Forwarded](#improve-extensibility-with-forwarded)
+    * [Response headers](#response-headers)
   * [Load balancing algorithms](#load-balancing-algorithms)
     * [Backend parameters](#backend-parameters)
     * [Upstream servers with SSL](#upstream-servers-with-ssl)
@@ -64,6 +70,8 @@ Go to the **[Table of Contents](https://github.com/trimstray/nginx-admins-handbo
     * [Variables](#variables)
     * [Directives, keys, and zones](#directives-keys-and-zones)
     * [Burst and nodelay parameters](#burst-and-nodelay-parameters)
+  * [NAXSI Web Application Firewall](#naxsi-web-application-firewall)
+  * [OWASP ModSecurity Core Rule Set (CRS)](#owasp-modsecurity-core-rule-set-crs)
   * [Core modules](#core-modules)
     * [ngx_http_geo_module](#ngx_http_geo_module)
   * [3rd party modules](#3rd-party-modules)
@@ -92,7 +100,7 @@ For upstream NGINX packaging paths can be as follows (it depends on the type of 
   * other locations: `/var/lib/nginx`
 
 - `/etc/nginx/conf` - contains custom/vhosts configuration files
-  * other locations:  `/etc/nginx/conf.d`, `/etc/nginx/sites-enabled` (I can't stand this debian-like convention...)
+  * other locations:  `/etc/nginx/conf.d`, `/etc/nginx/sites-enabled` (I can't stand this debian/apache-like convention)
 
 - `/var/run/nginx` - contains information about NGINX process(es)
   * other locations: `/usr/local/nginx/logs`, `logs/` in root directory
@@ -125,6 +133,8 @@ Some useful snippets for management of the NGINX daemon:
   ```bash
   /usr/sbin/nginx -t -c /etc/nginx/nginx.conf
   /usr/sbin/nginx -t -q -g 'daemon on; master_process on;' # ; echo $?
+
+  /usr/local/etc/rc.d/nginx status
   ```
 
 - starting daemon:
@@ -144,8 +154,10 @@ Some useful snippets for management of the NGINX daemon:
 - stopping daemon:
 
   ```bash
-  /usr/sbin/nginx -s quit     # graceful shutdown (waiting for the worker processes to finish serving current requests)
-  /usr/sbin/nginx -s stop     # fast shutdown (kill connections immediately)
+  # graceful shutdown (waiting for the worker processes to finish serving current requests)
+  /usr/sbin/nginx -s quit
+  # fast shutdown (kill connections immediately)
+  /usr/sbin/nginx -s stop
 
   service nginx stop
   systemctl stop nginx
@@ -164,6 +176,8 @@ Some useful snippets for management of the NGINX daemon:
   service nginx reload
   systemctl reload nginx
 
+  /usr/local/etc/rc.d/nginx reload
+
   kill -HUP $(cat /var/run/nginx.pid)
   kill -HUP $(pgrep -f "nginx: master")
   ```
@@ -179,14 +193,14 @@ Some useful snippets for management of the NGINX daemon:
 
 Something about testing configuration:
 
-  > You cannot test half-baked configurations, for example, you defined a server section for your domain in a separate file. Any attempt to test such a file will throw errors. The file has to be complete in all respects.
+  > You cannot test half-baked configurations. For example, you defined a server section for your domain in a separate file. Any attempt to test such a file will throw errors. The file has to be complete in all respects.
 
 #### Configuration syntax
 
   > **:bookmark: [Organising Nginx configuration - Base Rules - P2](RULES.md#beginner-organising-nginx-configuration)**<br>
   > **:bookmark: [Format, prettify and indent your Nginx code - Base Rules - P2](RULES.md#beginner-format-prettify-and-indent-your-nginx-code)**
 
-NGINX uses a micro programming language in the configuration files. This language's design is heavily influenced by Perl and Bourne Shell. For me NGINX configuration has a simple and very transparent structure.
+NGINX uses a micro programming language in the configuration files. This language's design is heavily influenced by Perl and Bourne Shell. Configuration syntax, formatting and definitions follow a so-called C-style convention. For me, NGINX configuration has a simple and very transparent structure.
 
 ##### Comments
 
@@ -198,9 +212,9 @@ Lines containing directives must end with a semicolon (`;`), otherwise NGINX wil
 
 ##### Variables, Strings, and Quotes
 
-Variables start with `$`. Some modules introduce variables can be used when setting directives.
+Variables start with `$` and that get set automaticaly for each request. The ability to set variables at runtime and control logic flow based on them is part of the rewrite module and not a general feature of NGINX. By default, we cannot modify built-in variables like `$host` or `$request_uri`.
 
-  > There are some directives that do not support variables, e.g. `access_log` or `error_log`.
+  > There are some directives that do not support variables, e.g. `access_log` (is really the exception because can contain variables with restrictions) or `error_log`. Variables probably can't be (and shouldn't be because they are evaluated in the run-time during the processing of each request and rather costly compared to plain static configuration) declared anywhere, with very few exceptions: `root` directive can contains variables, `server_name` directive only allows strict `$hostname` built-in value as a variable-like notation (but it's more like a magic constant). If you use variables in `if` context, you can only set them in `if` conditions (and maybe rewrite directives). Don’t try to use them elsewhere.
 
 To assign value to the variable you should use a `set` directive:
 
@@ -212,7 +226,7 @@ set $var "value";
 
 Some interesting things about variables:
 
-  > Make sure to read the [agentzh's Nginx Tutorials](https://openresty.org/download/agentzh-nginx-tutorials-en.html) - it's about NGINX tips & tricks. This guy is a Guru and creator of the OpenResty. In these tutorials he describes, amongst other things, variables in great detail. I also recommend [nginx built-in variables](http://siwei.me/blog/posts/nginx-built-in-variables).
+  > Make sure to read the [agentzh's Nginx Tutorials](https://openresty.org/download/agentzh-nginx-tutorials-en.html) - it's about NGINX tips & tricks. This guy is a NGINX Guru and creator of the OpenResty. In these tutorials he describes, amongst other things, variables in great detail. I also recommend [nginx built-in variables](http://siwei.me/blog/posts/nginx-built-in-variables) post.
 
 - the most variables in NGINX only exist at runtime, not during configuration time
 - the scope of variables spreads out all over configuration
@@ -228,17 +242,17 @@ Quotes are required for values which are containing space(s) and/or some other s
 
 ```nginx
 # 1)
-add_header X-Header "nginx web server;";
+add_header My-Header "nginx web server;";
 
 # 2)
-add_header X-Header nginx\ web\ server\;;
+add_header My-Header nginx\ web\ server\;;
 ```
 
 Variables in quoted strings are expanded normally unless the `$` is escaped.
 
 ##### Directives, Blocks, and Contexts
 
-  > Read this great article about [the NGINX configuration inheritance model](https://blog.martinfjordvald.com/2012/08/understanding-the-nginx-configuration-inheritance-model/) by [Martin Fjordvald](https://blog.martinfjordvald.com/about/).
+  > Read this great article about [the NGINX configuration inheritance model](https://blog.martinfjordvald.com/understanding-the-nginx-configuration-inheritance-model/) by [Martin Fjordvald](https://blog.martinfjordvald.com/about/).
 
 Configuration options are called directives. We have four types of directives:
 
@@ -275,6 +289,8 @@ Directives are organised into groups known as **blocks** or **contexts**. Genera
 As a general rule, if a directive is valid in multiple nested scopes, a declaration in a broader context will be passed on to any child contexts as default values. The children contexts can override these values at will.
 
   > Directives placed in the configuration file outside of any contexts are considered to be in the global/main context.
+
+  > Special attention should be paid to some strange behavior associated with some directives. For more information please see [Set the HTTP headers with add_header and proxy_*_header directives properly](RULES.md#beginner-set-the-http-headers-with-add_header-and-proxy__header-directives-properly) rule.
 
 Directives can only be used in the contexts that they were designed for. NGINX will error out on reading a configuration file with directives that are declared in the wrong context.
 
@@ -335,13 +351,13 @@ NGINX also provides other contexts (e.g. used for mapping) such as:
 
 - `limit_except` - is used to restrict the use of certain HTTP methods within a location context
 
-Also look at the graphic below. It presents the most important contexts with reference to the configuration:
+Look also at the graphic below. It presents the most important contexts with reference to the configuration:
 
 <p align="center">
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/nginx_contexts.png" alt="nginx-contexts">
 </p>
 
-NGINX lookup starts from the http block, then through one or more server blocks, followed by the location block(s).
+For HTTP, NGINX lookup starts from the http block, then through one or more server blocks, followed by the location block(s).
 
 ##### External files
 
@@ -356,22 +372,30 @@ include /etc/nginx/conf/*.conf;
 
   > You cannot use variables in NGINX config file includes. This is because includes are processed before any variables are evaluated.
 
+See also [this](http://nginx.org/en/docs/faq/variables_in_config.html):
+
+  > _Variables should not be used as template macros. Variables are evaluated in the run-time during the processing of each request, so they are rather costly compared to plain static configuration. Using variables to store static strings is also a bad idea. Instead, a macro expansion and "include" directives should be used to generate configs more easily and it can be done with the external tools, e.g. sed + make or any other common template mechanism._
+
 ##### Measurement units
+
+  > It is recommended to always specify a suffix for the sake of clarity and consistency.
 
 Sizes can be specified in:
 
+- without a suffix: Bytes
 - `k` or `K`: Kilobytes
 - `m` or `M`: Megabytes
 - `g` or `G`: Gigabytes
 
 ```nginx
-client_max_body_size 2M;
+client_max_body_size 2m;
 ```
 
 Time intervals can be specified in:
 
+- without a suffix: Seconds
 - `ms`: Milliseconds
-- `s`: Seconds (default, without a suffix)
+- `s`: Seconds
 - `m`: Minutes
 - `h`: Hours
 - `d`: Days
@@ -380,8 +404,12 @@ Time intervals can be specified in:
 - `y`: Years (365 days)
 
 ```nginx
-proxy_read_timeout 20 # =20s;
+proxy_read_timeout 20; # =20s, default
 ```
+
+Some of the time intervals can be specified only with a seconds resolution. You should also remember about this:
+
+  > _Multiple units can be combined in a single value by specifying them in the order from the most to the least significant, and optionally separated by whitespace. For example, `1h 30m` specifies the same time as `90m` or `5400s`_.
 
 ##### Regular expressions with PCRE
 
@@ -477,15 +505,17 @@ cabal update
   > **:bookmark: [Adjust worker processes - Performance - P3](RULES.md#beginner-adjust-worker-processes)**<br>
   > **:bookmark: [Improve debugging by disable daemon, master process, and all workers except one - Debugging - P4](RULES.md#beginner-improve-debugging-by-disable-daemon-master-process-and-all-workers-except-one)**
 
-NGINX has **one master process** and **one or more worker processes**.
+NGINX has **one master process** and **one or more worker processes**. It has also cache loader and cache manager processes but only if you enable caching.
 
 The main purposes of the master process is to read and evaluate configuration files, as well as maintain the worker processes (respawn when a worker dies), handle signals, notify workers, opens log files, and, of course binding to ports.
 
 Master process should be started as root user, because this will allow NGINX to open sockets below 1024 (it needs to be able to listen on port 80 for HTTP and 443 for HTTPS).
 
+  > To defines the number of worker processes you should set `worker_processes` directive.
+
 The worker processes do the actual processing of requests and get commands from master process. They runs in an event loop (registering events and responding when one occurs), handle network connections, read and write content to disk, and communicate with upstream servers. These are spawned by the master process, and the user and group will as specified (unprivileged).
 
-  > NGINX has also cache loader and cache manager processes but only if you enable caching.
+  > The worker processes spend most of the time just sleeping and waiting for new events (they are in `S` state in `top`).
 
 The following signals can be sent to the NGINX master process:
 
@@ -506,6 +536,47 @@ There’s no need to control the worker processes yourself. However, they suppor
 | `TERM`, `INT` | **15**, **2** | quick shutdown |
 | `QUIT` | **3** | graceful shutdown |
 | `USR1` | **10** | reopen the log files |
+
+###### CPU pinning
+
+Moreover, it is important to mention about `worker_cpu_affinity` directive (it's only supported on GNU/Linux). CPU affinity is used to control which CPUs NGINX utilizes for individual worker processes. By default, worker processes are not bound to any specific CPUs. What's more, system might schedule all worker processes to run on the same CPU which may not be efficient enough.
+
+CPU affinity is represented as a bitmask (given in hexadecimal), with the lowest order bit corresponding to the first logical CPU and the highest order bit corresponding to the last logical CPU.
+
+[Here](https://www.kutukupret.com/2010/11/18/nginx-worker_cpu_affinity/) you will find an amazing explanation of this. There is a [worker_cpu_affinity configuration generator](https://github.com/cubicdaiya/nwcagen) for NGINX. After all, I would recommend to let the OS scheduler to do the work because there is no reason to ever set it up during normal operation.
+
+###### Shutdown of worker processes
+
+This should come in useful if you want to tweak NGINX’s shutdown process, particularly if other servers or load balancers are relying upon predictable restart times or if it takes a long time to close worker processes.
+
+The `worker_shutdown_timeout` directive configures a timeout to be used when gracefully shutting down worker processes.  When the timer expires, NGINX will try to close all the connections currently open to facilitate shutdown.
+
+NGINX’s [Maxim Dounin](https://twitter.com/mdounin) explains:
+
+  > _The `worker_shutdown_timeout` directive is not expected to delay shutdown if there are no active connections. It was introduced to limit possible time spent in shutdown, that is, to ensure fast enough shutdown even if there are active connections._
+
+When a worker process enters the "exiting" state, it does a few things:
+
+  - mark itself as an exiting process
+  - set a shutdown timer, if `worker_shutdown_timeout` is defined
+  - close listening sockets
+  - close idle connections
+
+Then, if the shutdown timer was set, after the `worker_shutdown_timeout` interval, all connections are closed.
+
+  > By default, NGINX to wait for and process additional data from a client before fully closing a connection, but only if heuristics suggests that a client may be sending more data.
+
+Sometimes, you can see `nginx: worker process is shutting down` in your log file. The problem occurs when reloading the configuration - where NGINX usually exits the existing worker processes gracefully, but at times, it takes hours to close these processes. Every config reload may dropping a zombie workers, permanently eating up all of your system's memory. In this case, fast shutdown of worker processes might be a solution.
+
+In addition, setting `worker_shutdown_timeout` also solve the issue:
+
+```nginx
+worker_shutdown_timeout 60s;
+```
+
+Test connection timeouts and how long your request is processed by a server, next adjust the `worker_shutdown_timeout` value to these values. 60 seconds is a value with a solid supply and nothing valid should last longer than that.
+
+In my experience, if you have multiple workers in a shutting down state, maybe you should first look at the loaded modules that may cause problems with hanging worker processes.
 
 #### Connection processing
 
@@ -570,7 +641,21 @@ NGINX means connections as follows (the following status information is provided
 - **Writing** - the current number of connections where NGINX is writing the response back to the client (reads request body, processes request, or writes response to a client)
 - **Waiting** - the current number of idle client connections waiting for a request, i.e. connection still opened waiting for either a new request, or the keepalive expiration (actually it is Active - (Reading + Writing))
 
-  > Waiting connections those are keepalive connections. They are usually not a problem. But if you want lower the number reduce `keepalive_timeout`.
+  > Waiting connections those are keepalive connections. They are usually not a problem but if you want to reduce them set the lower value of the `keepalive_timeout` directive.
+
+Be sure to recommend to read [this](https://trac.nginx.org/nginx/ticket/1610#comment:1):
+
+  > Writing connections counter increasing might indicate one of the following:
+  >
+  >   - crashed or killed worker processes. This is unlikely in your case though, as this would also result in other values growing as well, notably `Waiting`
+  >   - a real socket leak somewhere. These usually results in sockets in `CLOSE_WAIT` state (in a waiting state for the FIN packet terminating the connection), try looking at `netstat` output without `grep -v CLOSE_WAIT` filter. Leaked sockets are reported by NGINX during graceful shutdown of a worker process (for example, after a configuration reload) - if there are any leaked sockets, NGINX will write `open socket ... left in connection ...` alerts to the error log
+  >
+  > To further investigate things, please do the following:
+  >   - upgrade to the latest mainline versions, without any 3rd party modules, and check if you are able to reproduce the issue
+  >   - try disabling HTTP/2 to see if it fixes the issue
+  >   - check if you are seeing `open socket ... left in connection ...` (socket leaks) alerts on configuration reload
+
+See also [Debugging socket leaks (from this handbook)](HELPERS.md#debugging-socket-leaks).
 
 ##### Event-Driven architecture
 
@@ -604,13 +689,15 @@ Look also what the official documentation says about it:
 
   > _Because the number of full‑weight processes is small (usually only one per CPU core) and constant, much less memory is consumed and CPU cycles aren’t wasted on task switching. The advantages of such an approach are well‑known through the example of NGINX itself. It successfully handles millions of simultaneous requests and scales very well._
 
-I must not forget to mention here about Non-Blocking and 3rd party modules (from official documentation):
+I must not forget to mention here about Non-Blocking and 3rd party modules (also from official documentation):
 
   > _Unfortunately, many third‑party modules use blocking calls, and users (and sometimes even the developers of the modules) aren’t aware of the drawbacks. Blocking operations can ruin NGINX performance and must be avoided at all costs._
 
 To handle concurrent requests with a single worker process NGINX uses the [reactor design pattern](https://stackoverflow.com/questions/5566653/simple-explanation-for-the-reactor-pattern-with-its-applications). Basically, it's a single-threaded but it can fork several processes to utilize multiple cores.
 
-However, NGINX is not a single threaded application. Each of worker processes is single-threaded and can handle thousands of concurrent connections. NGINX does not create a new process/thread for each connection/requests but it starts several worker threads during start. It does this asynchronously with one thread, rather than using multi-threaded programming (it uses an event loop with asynchronous I/O).
+However, NGINX is not a single threaded application. Each of worker processes is single-threaded and can handle thousands of concurrent connections. Workers are used to get request parallelism across multiple cores. When a request blocks, that worker will work on another request.
+
+NGINX does not create a new process/thread for each connection/requests but it starts several worker threads during start. It does this asynchronously with one thread, rather than using multi-threaded programming (it uses an event loop with asynchronous I/O).
 
 That way, the I/O and network operations are not a very big bottleneck (remember that your CPU would spend a lot of time waiting for your network interfaces, for example). This results from the fact that NGINX only use one thread to service all requests. When requests arrive at the server, they are serviced one at a time. However, when the code serviced needs other thing to do it sends the callback to the other queue and the main thread will continue running (it doesn't wait).
 
@@ -627,8 +714,9 @@ For more information take a look at following resources:
 - [Nginx vs Apache: Is it fast, if yes, why?](http://planetunknown.blogspot.com/2011/02/why-nginx-is-faster-than-apache.html)
 - [How is Nginx handling its requests in terms of tasks or threading?](https://softwareengineering.stackexchange.com/questions/256510/how-is-nginx-handling-its-requests-in-terms-of-tasks-or-threading)
 - [Why nginx is faster than Apache, and why you needn’t necessarily care](https://djangodeployment.com/2016/11/15/why-nginx-is-faster-than-apache-and-why-you-neednt-necessarily-care/)
+- [How we scaled nginx and saved the world 54 years every day](https://blog.cloudflare.com/how-we-scaled-nginx-and-saved-the-world-54-years-every-day/)
 
-Finally, look at these great previews:
+Finally, look at these great preview:
 
 <p align="center">
   <a href="https://www.nginx.com/blog/inside-nginx-how-we-designed-for-performance-scale/">
@@ -646,13 +734,15 @@ From official documentation:
 
   > _The NGINX configuration recommended in most cases - running one worker process per CPU core - makes the most efficient use of hardware resources._
 
-NGINX uses a custom event loop which was designed specifically for NGINX - all connections are processed in a highly efficient run-loop in a limited number of single-threaded processes called workers.
+NGINX uses a custom event loop which was designed specifically for NGINX - all connections are processed in a highly efficient run-loop in a limited number of single-threaded processes called workers. Worker processes accept new requests from a shared listen socket and execute a loop. There’s no specialized distribution of connections to the workers in NGINX; this work is done by the OS kernel mechanisms which notifies a workers.
 
-Multiplexing works by using a loop to increment through a program chunk by chunk operating on one piece of data/new connection/whatever per connection/object per loop iteration. It is all based on events multiplexing like `epoll()`, `kqueue()`, or `select()`. Within each worker NGINX can handle many thousands of concurrent connections and requests per second.
+  > _Upon startup, an initial set of listening sockets is created. workers then continuously accept, read from and write to the sockets while processing HTTP requests and responses._ - from [The Architecture of Open Source Applications - NGINX](http://aosabook.org/en/nginx.html).
+
+Multiplexing works by using a loop to increment through a program chunk by chunk operating on one piece of data/new connection/whatever per connection/object per loop iteration. It is all based on events multiplexing like `epoll()` or `kqueue()`. Within each worker NGINX can handle many thousands of concurrent connections and requests per second.
 
   > See [Nginx Internals](https://www.slideshare.net/joshzhu/nginx-internals) presentation as a lot of great stuff about the internals of the NGINX.
 
-NGINX does not fork a process or thread per connection (like Apache) so memory usage is very conservative and extremely efficient in the vast majority of cases. NGINX is a faster and consumes less memory than Apache. It is also very friendly for CPU because there's no ongoing create-destroy pattern for processes or threads.
+NGINX does not fork a process or thread per connection (like Apache) so memory usage is very conservative and extremely efficient in the vast majority of cases. NGINX is a faster and consumes less memory than Apache and performs very well under load. It is also very friendly for CPU because there's no ongoing create-destroy pattern for processes or threads.
 
 Finally and in summary:
 
@@ -675,15 +765,15 @@ According to this: if you are running **4** worker processes with **4,096** work
 
 I've seen some admins does directly translate the sum of `worker_processes` and `worker_connections` into the number of clients that can be served simultaneously. In my opinion, it is a mistake because certain of clients (e.g. browsers which have different values for this) **opens a number of parallel connections** (see [this](https://stackoverflow.com/questions/985431/max-parallel-http-connections-in-a-browser) to confirm my words). Clients typically establish 4-8 TCP connections so that they can download resources in parallel (to download various components that compose a web page, for example, images, scripts, and so on). This increases the effective bandwidth and reduces latency.
 
-  > That is a HTTP/1.1 limit (6-8) of concurrent HTTP calls, the best solution to improve performance (without upgrade the hardware and use cache at the middle (e.g. CDN, Varnish)) is using HTTP/2 ([RFC 7540](https://tools.ietf.org/html/rfc7540) <sup>[IETF]</sup>) instead of HTTP/1.1.
+  > That is a HTTP/1.1 limit (6-8) of concurrent HTTP calls. The best solution to improve performance (without upgrade the hardware and use cache at the middle (e.g. CDN, Varnish)) is using HTTP/2 ([RFC 7540](https://tools.ietf.org/html/rfc7540) <sup>[IETF]</sup>) instead of HTTP/1.1.
   >
-  > HTTP/2 multiplex many HTTP requests on a single connection. When HTTP/1.1 has a limit of 6-8 roughly, HTTP/2 does not have a standard limit but say that "_It is recommended that this value (`SETTINGS_MAX_CONCURRENT_STREAMS`) be no smaller than 100_" (RFC 7540). That number is better than 6-8.
+  > HTTP/2 multiplex many HTTP requests on a single connection. When HTTP/1.1 has a limit of 6-8 roughly, HTTP/2 does not have a standard limit but say: "_It is recommended that this value (`SETTINGS_MAX_CONCURRENT_STREAMS`) be no smaller than 100_" (RFC 7540). That number is better than 6-8.
 
 Additionally, you must know that the `worker_connections` directive **includes all connections** per worker (e.g. connection structures are used for listen sockets, internal control sockets between NGINX processes, connections with proxied servers, and for upstream connections), not only incoming connections from clients.
 
   > Be aware that every worker connection (in the sleeping state) needs 256 bytes of memory, so you can increase it easily.
 
-The number of connections is especially limited by the maximum number of open files (`RLIMIT_NOFILE`) on your system. The reason is that the operating system needs memory to manage each open file, and memory is a limited resource. This limitation only affects the limits for the current process. The limits of the current process are bequeathed to children processes too, but each process has a separate count.
+The number of connections is especially limited by the maximum number of open files (`RLIMIT_NOFILE`) on your system (you can read about file descriptors and file handlers on [this](https://stackoverflow.com/questions/2423628/whats-the-difference-between-a-file-descriptor-and-file-pointer) great explanation). The reason is that the operating system needs memory to manage each open file, and memory is a limited resource. This limitation only affects the limits for the current process. The limits of the current process are bequeathed to children processes too, but each process has a separate count.
 
 To change the limit of the maximum file descriptors (that can be opened by a single worker process) you can also edit the `worker_rlimit_nofile` directive. With this, NGINX provides very powerful dynamic configuration capabilities with no service restarts.
 
@@ -694,6 +784,7 @@ I don't like this piece of the NGINX documentation. Maybe I'm missing something 
 If you set `RLIMIT_NOFILE` to 25,000 and `worker_rlimit_nofile` to 12,000, NGINX sets (only for workers) the maximum open files limit as a `worker_rlimit_nofile`. But the master process will have a set value of `RLIMIT_NOFILE`. Default value of `worker_rlimit_nofile` directive is `none` so by default NGINX sets the initial value of maximum open files from the system limits.
 
 ```bash
+# On GNU/Linux (or /usr/lib/systemd/system/nginx.service):
 grep "LimitNOFILE" /lib/systemd/system/nginx.service
 LimitNOFILE=5000
 
@@ -706,11 +797,17 @@ worker_rlimit_nofile 256;
  24432        256 256
  24433        256 256
  24434        256 256
+
+# To check fds on FreeBSD:
+sysctl kern.maxfiles kern.maxfilesperproc kern.openfiles
+kern.maxfiles: 64305
+kern.maxfilesperproc: 57870
+kern.openfiles: 143
 ```
 
-This is also controlled by the OS because the worker is not the only process running on the machine. It would be very bad if your workers used up all of the file descriptors available to all processes, don't set your limits so that is possible.
+This is also controlled by the OS because the worker is not the only process running on the server. It would be very bad if your workers used up all of the file descriptors available to all processes, don't set your limits so that is possible.
 
-In my opinion, relying on the `RLIMIT_NOFILE` than `worker_rlimit_nofile` value is more understandable and predictable. To be honest, it doesn't really matter which method is used to set, but you should keep a constant eye on the priority of the limits.
+In my opinion, relying on the `RLIMIT_NOFILE` (and alternatives on other systems) than `worker_rlimit_nofile` value is more understandable and predictable. To be honest, it doesn't really matter which method is used to set, but you should keep a constant eye on the priority of the limits.
 
   > If you don't set the `worker_rlimit_nofile` directive manually, then the OS settings will determine how many file descriptors can be used by NGINX.
 
@@ -870,7 +967,7 @@ Given the above to change/improve the limitations you should:
     ```bash
     # Set the limit for file descriptors for a single worker process (change it as needed):
     #   nginx.conf within the main context
-    worker_rlimit_nofile          10000;
+    worker_rlimit_nofile 10000;
 
     # You need to reload the NGINX service:
     nginx -s reload
@@ -890,7 +987,8 @@ done | xargs printf '%6s %10s\t%s\n%6s %10s\t%s\n' "PID" "SOFT" "HARD"
 or use the following:
 
 ```bash
-# To determine the OS limits imposed on a process, read the file /proc/$pid/limits. $pid corresponds to the PID of the process:
+# To determine the OS limits imposed on a process, read the file /proc/$pid/limits.
+# $pid corresponds to the PID of the process:
 for _pid in $(pgrep -f "nginx: [master,worker]") ; do
 
   echo -en ">>> $_pid\\n"
@@ -939,14 +1037,16 @@ nginx: master process         = LimitNOFILE (35,000)
   \_ nginx: worker process    = LimitNOFILE (35,000), worker_rlimit_nofile (10,000)
   \_ nginx: worker process    = LimitNOFILE (35,000), worker_rlimit_nofile (10,000)
 
-                              = master (35,000), all workers (140,000 or 40,000)
+                              = master (35,000), all workers:
+                                                 - 140,000 by LimitNOFILE
+                                                 - 40,000 by worker_rlimit_nofile
 ```
 
-Look also at this great article about [Optimizing Nginx for High Traffic Loads](https://blog.martinfjordvald.com/2011/04/optimizing-nginx-for-high-traffic-loads/).
+Look also at this great article about [Optimizing Nginx for High Traffic Loads](https://blog.martinfjordvald.com/optimizing-nginx-for-high-traffic-loads/).
 
 ##### HTTP Keep-Alive connections
 
-  > **:bookmark: [Activate the cache for connections to upstream servers - Performance - P2](doc/RULES.md#beginner-activate-the-cache-for-connections-to-upstream-servers)**
+  > **:bookmark: [Activate the cache for connections to upstream servers - Performance - P2](RULES.md#beginner-activate-the-cache-for-connections-to-upstream-servers)**
 
 Before starting this section I recommend to read the following articles:
 
@@ -958,7 +1058,7 @@ The original model of HTTP, and the default one in HTTP/1.0, is short-lived conn
 
 HTTP Keep-Alive connection or persistent connection is the idea of using a single TCP connection to send and receive multiple HTTP requests/responses (Keep Alive's work between requests), as opposed to opening a new connection for every single request/response pair.
 
-When using keep alive the browser does not have to make multiple connections (keep in mind that establishing connections is expensive). But uses the already established connection, this controls how long that stays active/open. So, the keep alive is a way to reduce the overhead of creating the connection, as, most of the time, a user will navigate through the site etc. (plus the multiple requests from a single page, to download css, javascript, images etc.).
+When using keep alive the browser does not have to make multiple connections (keep in mind that establishing connections is expensive) but uses the already established connection and controls how long that stays active/open. So, the keep alive is a way to reduce the overhead of creating the connection, as, most of the time, a user will navigate through the site etc. (plus the multiple requests from a single page, to download css, javascript, images etc.).
 
 It takes a 3-way handshake to establish a TCP connection, so, when there is a perceivable latency between the client and the server, keepalive would greatly speed things up by reusing existing connections.
 
@@ -975,6 +1075,8 @@ Persistent connection model keeps connections opened between successive requests
 </p>
 
 <sup><i>This infographic comes from [Mozilla MDN - Connection management in HTTP/1.x](https://developer.mozilla.org/en-US/docs/Web/HTTP/Connection_management_in_HTTP_1.x).</i></sup>
+
+However, at present, browsers are not using pipelined HTTP requests. For more information please see [Why is pipelining disabled in modern browsers?](https://stackoverflow.com/questions/30477476/why-is-pipelining-disabled-in-modern-browsers).
 
 Look also at this example that shows how a Keep-Alive header could be used:
 
@@ -1011,20 +1113,21 @@ NGINX provides the two layers to enable Keep-Alive:
 
   ```nginx
   # Default: 100
-  keepalive_requests  256;
+  keepalive_requests 256;
   ```
 
 - server will close connection after this time. A higher number may be required when there is a larger amount of traffic to ensure there is no frequent TCP connection re-initiated. If you set it lower, you are not utilizing keep-alives on most of your requests slowing down client:
 
   ```nginx
   # Default: 75s
-  keepalive_timeout   10s;
+  keepalive_timeout 10s;
 
-  # Or tell the browser when it should close the connection by adding an optional second timeout in the header sent to the browser (some browsers do not care about the header):
-  keepalive_timeout   10s 25s;
+  # Or tell the browser when it should close the connection by adding an optional second timeout
+  # in the header sent to the browser (some browsers do not care about the header):
+  keepalive_timeout 10s 25s;
   ```
 
-  > Increase this to allow the keepalive connection to stay open longer, resulting in faster subsequent requests. However, setting this too high will result in the waste of resources (mainly memory) as the connection will remain open even if there is no traffic, potentially: significantly affecting performance. I think this should be as close to your average response time as possible. You could also decrease little by little the timeout (75s -> 50, then later 25...) and see how the server behaves.
+  > Increase this to allow the keepalive connection to stay open longer, resulting in faster subsequent requests. However, setting this too high will result in the waste of resources (mainly memory) as the connection will remain open even if there is no traffic, potentially: significantly affecting performance. I think this should be as close to your average response time as possible. You could also decrease little by little the timeout (75s -> 50s, then later 25s...) and see how the server behaves.
 
 ###### Upstream layer
 
@@ -1032,10 +1135,10 @@ NGINX provides the two layers to enable Keep-Alive:
 
   ```nginx
   # Default: disable
-  keepalive         32;
+  keepalive 32;
   ```
 
-NGINX, by default, only talks HTTP/1.0 to the upstream servers. To keep TCP connection alive both upstream section and origin server should be configured to not finalise the connection.
+NGINX, by default, only talks on HTTP/1.0 to the upstream servers. To keep TCP connection alive both upstream section and origin server should be configured to not finalise the connection.
 
   > Please keep in mind that keepalive is a feature of HTTP 1.1, NGINX uses HTTP 1.0 per default for upstreams.
 
@@ -1054,7 +1157,7 @@ upstream bk_x8080 {
 
   # Sets the maximum number of idle keepalive connections to upstream servers
   # that are preserved in the cache of each worker process.
-  keepalive         16;
+  keepalive 16;
 
 }
 ```
@@ -1069,12 +1172,12 @@ server {
   location / {
 
     # Default is HTTP/1, keepalive is only enabled in HTTP/1.1:
-    proxy_http_version  1.1;
+    proxy_http_version 1.1;
     # Remove the Connection header if the client sends it,
     # it could be "close" to close a keepalive connection:
-    proxy_set_header    Connection "";
+    proxy_set_header Connection "";
 
-    proxy_pass          http://bk_x8080;
+    proxy_pass http://bk_x8080;
 
   }
 
@@ -1152,7 +1255,7 @@ NGINX employs a solution that uses the `sendfile` system call to perform a zero-
 
 This method is an improved method of data transfer, in which data is copied between file descriptors within the OS kernel space, that is, without transferring data to the application buffers. No additional buffers or data copies are required, and the data never leaves the kernel memory address space.
 
-In my opinion enabling this really won't make any difference unless NGINX is reading from something which can be mapped into the virtual memory space like a file (i.e. the data is in the cache). But please... do not let me influence you - you should in the first place be keeping an eye on this document: [Optimizing TLS for High–Bandwidth Applications in FreeBSD](https://people.freebsd.org/~rrs/asiabsd_2015_tls.pdf).
+In my opinion enabling this really won't make any difference unless NGINX is reading from something which can be mapped into the virtual memory space like a file (i.e. the data is in the cache). But please... do not let me influence you - you should in the first place be keeping an eye on this document: [Optimizing TLS for High–Bandwidth Applications in FreeBSD](https://people.freebsd.org/~rrs/asiabsd_2015_tls.pdf) <sup>[pdf]</sup>.
 
 By default NGINX disable the use of `sendfile`:
 
@@ -1165,9 +1268,20 @@ sendfile on;
 sendfile off;     # default
 ```
 
+Look also at `sendfile_max_chunk` directive. NGINX documentation say:
+
+  > _When set to a non-zero value, limits the amount of data that can be transferred in a single `sendfile()` call. Without the limit, one fast connection may seize the worker process entirely._
+
+On fast local connection `sendfile()` in Linux may send tens of megabytes per one syscall blocking other connections. `sendfile_max_chunk` allows to limit the maximum size per one `sendfile()` operation. So, with this NGINX  can reduce the maximum time spent in blocking `sendfile()` calls, since NGINX won’t try to send the whole file at once, but will do it in chunks. For example:
+
+```nginx
+sendfile on;
+sendfile_max_chunk 512k;
+```
+
 ###### `tcp_nodelay`
 
-I recommend to read [The Caveats of TCP_NODELAY](https://eklitzke.org/the-caveats-of-tcp-nodelay) and [Rethinking the TCP Nagle Algorithm](http://ccr.sigcomm.org/archive/2001/jan01/ccr-200101-mogul.pdf). These great papers describes very interesting topics about `TCP_NODELAY` and `TCP_NOPUSH`.
+I recommend to read [The Caveats of TCP_NODELAY](https://eklitzke.org/the-caveats-of-tcp-nodelay) and [Rethinking the TCP Nagle Algorithm](http://ccr.sigcomm.org/archive/2001/jan01/ccr-200101-mogul.pdf) <sup>[pdf]</sup>. These great papers describes very interesting topics about `TCP_NODELAY` and `TCP_NOPUSH`.
 
 `tcp_nodelay` is used to manage Nagle's algorithm which is one mechanism for improving TCP efficiency by reducing the number of small packets sent over the network. If you set `tcp_nodelay on;`, NGINX adds the `TCP_NODELAY` options when opening a new socket.
 
@@ -1187,17 +1301,16 @@ You should also know [the Nagle’s algorithm author's interesting comment](http
 
   > _If you're doing bulk file transfers, you never hit that problem. If you're sending enough data to fill up outgoing buffers, there's no delay. If you send all the data and close the TCP connection, there's no delay after the last packet. If you do send, reply, send, reply, there's no delay. If you do bulk sends, there's no delay. If you do send, send, reply, there's a delay._
 
-And:
-
   > _The real problem is ACK delays. The 200ms "ACK delay" timer is a bad idea that someone at Berkeley stuck into BSD around 1985 because they didn't really understand the problem. A delayed ACK is a bet that there will be a reply from the application level within 200ms. TCP continues to use delayed ACKs even if it's losing that bet every time._
 
-I think, if you are dealing with non-interactive type of traffic or bulk transfers such as HTTP/web traffic then enabling `TCP_NODELAY` to disable Nagle's algorithm may be useful (is the default behavior of the NGINX). This is especially relevant if you're running applications or environments that only sometimes have highly interactive traffic and chatty protocols.
+I think if you are dealing with non-interactive type of traffic or bulk transfers such as HTTP/web traffic then enabling `TCP_NODELAY` to disable Nagle's algorithm may be useful (is the default behavior of the NGINX). This is especially relevant if you're running applications or environments that only sometimes have highly interactive traffic and chatty protocols.
 
 By default NGINX enable the use of `TCP_NODELAY` option:
 
 ```nginx
 # http, server, location contexts
-# To turn on tcp_nodelay and at the same time to disable Nagle’s algorithm (my recommendation, unless you turn tcp_nopush on):
+# To turn on tcp_nodelay and at the same time to disable Nagle’s algorithm
+# (my recommendation, unless you turn tcp_nopush on):
 tcp_nodelay on;   # default
 
 # To turn off tcp_nodelay and at the same time to enable Nagle’s algorithm:
@@ -1259,6 +1372,8 @@ tcp_nopush on;    # with this, the tcp_nodelay does not really matter
 
 #### Request processing stages
 
+  > When building filtering rules (e.g. with `allow/deny`) you should always remember to test them and to know what happens at each of the phases (which modules are used). For additional information about the potential problems, look at [allow and deny](#allow-and-deny) section and [Take care about your ACL rules - Hardening - P1](RULES.md#beginner-take-care-about-your-acl-rules).
+
 There can be altogether 11 phases when NGINX handles (processes) a request:
 
 - `NGX_HTTP_POST_READ_PHASE` - first phase, read the request header
@@ -1315,7 +1430,7 @@ I recommend to read a great explanation about [HTTP request processing phases in
 
 #### Server blocks logic
 
-  > NGINX does have **server blocks** (like a virtual hosts in an Apache) that use `listen` and `server_name` directives to bind to TCP sockets.
+  > NGINX does have **server blocks** (like a virtual hosts in an Apache) that use `listen` directive to bind to TCP sockets and `server_name` directive to identify virtual hosts.
 
 It's a short example of two server block contexts with several regular expressions:
 
@@ -1368,10 +1483,10 @@ http {
 
   > **:bookmark: [Define the listen directives with address:port pair - Base Rules - P1](RULES.md#beginner-define-the-listen-directives-with-addressport-pair)**<br>
   > **:bookmark: [Prevent processing requests with undefined server names - Base Rules - P1](RULES.md#beginner-prevent-processing-requests-with-undefined-server-names)**<br>
-  > **:bookmark: [Never use a hostname in a listen or upstream directive - Base Rules - P1](RULES.md#beginner-never-use-a-hostname-in-a-listen-or-upstream-directive)**<br>
-  > **:bookmark: [Use exact names in a server_name directive where possible - Performance - P2](RULES.md#beginner-use-exact-names-in-a-server_name-directive-where-possible)**<br>
-  > **:bookmark: [Separate listen directives for 80 and 443 - Base Rules - P3](RULES.md#beginner-separate-listen-directives-for-80-and-443)**<br>
-  > **:bookmark: [Use only one SSL config for the listen directive - Base Rules - P3](#beginner-use-only-one-ssl-config-for-the-listen-directive)**
+  > **:bookmark: [Never use a hostname in a listen or upstream directives - Base Rules - P1](RULES.md#beginner-never-use-a-hostname-in-a-listen-or-upstream-directives)**<br>
+  > **:bookmark: [Use exact names in a server_name directive if possible - Performance - P2](RULES.md#beginner-use-exact-names-in-a-server_name-directive-if-possible)**<br>
+  > **:bookmark: [Separate listen directives for 80 and 443 ports - Base Rules - P3](RULES.md#beginner-separate-listen-directives-for-80-and-443-ports)**<br>
+  > **:bookmark: [Use only one SSL config for the listen directive - Base Rules - P3](RULES.md#beginner-use-only-one-ssl-config-for-the-listen-directive)**
 
 NGINX uses the following logic to determining which virtual server (server block) should be used:
 
@@ -1435,16 +1550,16 @@ NGINX uses the following logic to determining which virtual server (server block
 3. Match the `Host` header field against the `server_name` directive with a
 wildcard at the beginning of the string (the hash table with wildcard names starting with an asterisk)
 
-    > If one is found, that block will be used to serve the request. If multiple matches are found, the longest match will be used to serve the request.
+  > If one is found, that block will be used to serve the request. If multiple matches are found, the longest match will be used to serve the request.
 
 4. Match the `Host` header field against the `server_name` directive with a
 wildcard at the end of the string (the hash table with wildcard names ending with an asterisk)
 
-    > If one is found, that block is used to serve the request. If multiple matches are found, the longest match will be used to serve the request.
+  > If one is found, that block is used to serve the request. If multiple matches are found, the longest match will be used to serve the request.
 
 5. Match the `Host` header field against the `server_name` directive as a regular expression
 
-    > The first `server_name` with a regular expression that matches the `Host` header will be used to serve the request.
+  > The first `server_name` with a regular expression that matches the `Host` header will be used to serve the request.
 
 6. If all the `Host` headers doesn't match, then direct to the `listen` directive marked as `default_server` (makes the server block answer all the requests that doesn’t match any server block)
 
@@ -1461,7 +1576,7 @@ direct to the first server with a `listen` directive that satisfies first step
 
   > For each request, NGINX goes through a process to choose the best location block that will be used to serve that request.
 
-The location block enables you to handle several types of URIs/routes, within a server block. Syntax looks like:
+The location block enables you to handle several types of URIs/routes (Layer 7 routing based on URL), within a server block. Syntax looks like:
 
 ```
 location optional_modifier location_match { ... }
@@ -1489,7 +1604,7 @@ And now, a short introduction to determines location priority:
 
 - if regular expression searching yielded a match, that result is used, otherwise, the match from prefix searching is used
 
-So look at this example, it comes from the [Nginx documentation - ngx_http_core_module](https://nginx.org/en/docs/http/ngx_http_core_module.html#location):
+So, look at this example, it comes from the [Nginx documentation - ngx_http_core_module](https://nginx.org/en/docs/http/ngx_http_core_module.html#location):
 
 ```
 location = / {
@@ -1529,21 +1644,36 @@ To help you understand how does location match works:
 
 The process of choosing NGINX location block is as follows (a detailed explanation):
 
-1. NGINX searches for an exact match. If a `=` modifier exactly matches the request URI, this specific location block is chosen right away
+1. NGINX searches for an exact match. If a `=` modifier (e.g. `location = foo { ... }`) exactly matches the request URI, this specific location block is chosen right away
+
+  - this block is processed
+  - match-searching stops
 
 2. Prefix-based NGINX location matches (no regular expression). Each location will be checked against the request URI. If no exact (meaning no `=` modifier) location block is found, NGINX will continue with non-exact prefixes. It starts with the longest matching prefix location for this URI, with the following approach:
 
-    - In case the longest matching prefix location has the `^~` modifier, NGINX will stop its search right away and choose this location.
+  - In case the longest matching prefix location has the `^~` modifier (e.g. `location ^~ foo { ... }`), NGINX will stop its search right away and choose this location
 
-    - Assuming the longest matching prefix location doesn’t use the `^~` modifier, the match is temporarily stored and the process continues.
+    - the block of the longest (most explicit) of those matches is processed
+    - match-searching stops
 
-    > I'm not sure about the order. In the official documentation it is not clearly indicated and external guides explain it differently. It seems logical to check the longest matching prefix location first.
+  - Assuming the longest matching prefix location doesn’t use the `^~` modifier, the match is temporarily stored and the process continues
 
-3. As soon as the longest matching prefix location is chosen and stored, NGINX continues to evaluate the case-sensitive and insensitive regular expression locations. The first regular expression location that fits the URI is selected right away to process the request
+  > I'm not sure about the order. In the official documentation it is not clearly indicated and external guides explain it differently. It seems logical to check the longest matching prefix location first.
 
-4. If no regular expression locations are found that match the request URI, the previously stored prefix location is selected to serve the request
+3. As soon as the longest matching prefix location is chosen and stored, NGINX continues to evaluate the case-sensitive (e.g. `location ~ foo { ... }`) and insensitive regular expression (e.g. `location ~* foo { ... }`) locations. The first regular expression location that fits the URI is selected right away to process the request
 
-In order to better understand how this process work please see this short cheatsheet that will allow you to design your location blocks in a predictable way:
+  - the block of the first matching regex found (when parsing the config-file top-to-bottom) is processed
+  - match-searching stops
+
+4. If no regular expression locations are found that match the request URI, the previously stored prefix location (e.g. `location foo { ... }`) is selected to serve the request
+
+  - `location /` kind of a catch all location
+  - the block of the longest (most explicit) of those matches is processed
+  - match-searching stops
+
+You should also know, that the non-regex match-types are fully declarative - order of definition in the config doesn't matter - but the winning regex-match (if processing even gets that far) is entirely based on its order of entry in the config file.
+
+In order, to better understand how this process work, please see this short cheatsheet that will allow you to design your location blocks in a predictable way:
 
 <p align="center">
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/nginx_location_cheatsheet.png" alt="nginx-location-cheatsheet">
@@ -1556,63 +1686,63 @@ Ok, so here's a more complicated configuration:
 ```nginx
 server {
 
- listen           80;
- server_name      xyz.com www.xyz.com;
+ listen 80;
+ server_name xyz.com www.xyz.com;
 
  location ~ ^/(media|static)/ {
-  root            /var/www/xyz.com/static;
-  expires         10d;
+  root /var/www/xyz.com/static;
+  expires 10d;
  }
 
  location ~* ^/(media2|static2) {
-  root            /var/www/xyz.com/static2;
-  expires         20d;
+  root /var/www/xyz.com/static2;
+  expires 20d;
  }
 
  location /static3 {
-  root            /var/www/xyz.com/static3;
+  root /var/www/xyz.com/static3;
  }
 
  location ^~ /static4 {
-  root            /var/www/xyz.com/static4;
+  root /var/www/xyz.com/static4;
  }
 
  location = /api {
-  proxy_pass      http://127.0.0.1:8080;
+  proxy_pass http://127.0.0.1:8080;
  }
 
  location / {
-  proxy_pass      http://127.0.0.1:8080;
+  proxy_pass http://127.0.0.1:8080;
  }
 
  location /backend {
-  proxy_pass      http://127.0.0.1:8080;
+  proxy_pass http://127.0.0.1:8080;
  }
 
  location ~ logo.xcf$ {
-  root            /var/www/logo;
-  expires         48h;
+  root /var/www/logo;
+  expires 48h;
  }
 
  location ~* .(png|ico|gif|xcf)$ {
-  root            /var/www/img;
-  expires         24h;
+  root /var/www/img;
+  expires 24h;
  }
 
  location ~ logo.ico$ {
-  root            /var/www/logo;
-  expires         96h;
+  root /var/www/logo;
+  expires 96h;
  }
 
  location ~ logo.jpg$ {
-  root            /var/www/logo;
-  expires         48h;
+  root /var/www/logo;
+  expires 48h;
  }
 
 }
 ```
 
-And here's the table with the results:
+And look the table with the results:
 
 | <b>URL</b> | <b>LOCATIONS FOUND</b> | <b>FINAL MATCH</b> |
 | :---         | :---         | :---         |
@@ -1639,9 +1769,9 @@ And here's the table with the results:
 
 ##### `rewrite` vs `return`
 
-Generally there are two ways of implementing redirects in NGINX with: `rewrite` and `return`.
+Generally there are two ways of implementing redirects in NGINX: with `rewrite` and `return` directives.
 
-These directives (comes from the `ngx_http_rewrite_module`) are very useful but (from the NGINX documentation) the only 100% safe things which may be done inside if in a location context are:
+These directives (comes from the `ngx_http_rewrite_module`) are very useful but (from the NGINX documentation) the only 100% safe things which may be done inside if in a `location` context are:
 
 - `return ...;`
 - `rewrite ... last;`
@@ -1661,10 +1791,10 @@ location / {
 
   ...
 
-  rewrite   ^/users/(.*)$       /user.php?username=$1 last;
+  rewrite ^/users/(.*)$ /user.php?username=$1 last;
 
   # or:
-  rewrite   ^/users/(.*)/items$ /user.php?username=$1&page=items last;
+  rewrite ^/users/(.*)/items$ /user.php?username=$1&page=items last;
 
 }
 ```
@@ -1716,9 +1846,9 @@ Note:
 
 <sup><i>This explanation is based on the awesome answer by [Pothi Kalimuthu](https://serverfault.com/users/102173/pothi-kalimuthu) to [nginx url rewriting: difference between break and last](https://serverfault.com/a/829148).</i></sup>
 
-Official documentation has a great tutorials about [Creating NGINX Rewrite Rules](https://www.nginx.com/blog/creating-nginx-rewrite-rules/) and [Converting rewrite rules](https://nginx.org/en/docs/http/converting_rewrite_rules.html).
+Official documentation has a great tutorials about [Creating NGINX Rewrite Rules](https://www.nginx.com/blog/creating-nginx-rewrite-rules/) and [Converting rewrite rules](https://nginx.org/en/docs/http/converting_rewrite_rules.html). I also recommend [Clean Url Rewrites Using Nginx](https://www.codesmite.com/article/clean-url-rewrites-using-nginx).
 
-Finally, look at difference between `last` and `break` flags in action:
+Finally, look at the difference between `last` and `break` flags in action:
 
 - `last` directive:
 
@@ -1739,7 +1869,7 @@ Finally, look at difference between `last` and `break` flags in action:
   > **:bookmark: [Use return directive for URL redirection (301, 302) - Base Rules - P2](RULES.md#beginner-use-return-directive-for-url-redirection-301-302)**<br>
   > **:bookmark: [Use return directive instead of rewrite for redirects - Performance - P2](RULES.md#beginner-use-return-directive-instead-of-rewrite-for-redirects)**
 
-The other way is a `return` directive. It's faster than rewrite because there is no regexp that has to be evaluated. It's stops processing and returns HTTP 301 (by default) to a client, and the entire url is rerouted to the url specified.
+The other way is a `return` directive. It's faster than rewrite because there is no regexp that has to be evaluated. It's stops processing and returns HTTP 301 (by default) to a client (tells NGINX to respond directly to the request), and the entire url is rerouted to the url specified.
 
 I use `return` directive in the following cases:
 
@@ -1750,7 +1880,7 @@ I use `return` directive in the following cases:
 
     ...
 
-    return  301 https://example.com$request_uri;
+    return 301 https://example.com$request_uri;
 
   }
   ```
@@ -1762,10 +1892,10 @@ I use `return` directive in the following cases:
 
     ...
 
-    # It's only example. You shouldn't use 'if' statement in the following case.
+    # It's only example. You shouldn't use 'if' statement in the following case:
     if ($host = www.example.com) {
 
-      return  301 https://example.com$request_uri;
+      return 301 https://example.com$request_uri;
 
     }
 
@@ -1843,6 +1973,31 @@ I use `return` directive in the following cases:
 
 To the last example: be careful if you're using such a configuration to do a healthcheck. While a 204 HTTP code is semantically perfect for a healthcheck (success indication with no content), some services do not consider it a success.
 
+###### URL redirections
+
+  > **:bookmark: [Use return directive for URL redirection (301, 302) - Base Rules - P2](RULES.md#beginner-use-return-directive-for-url-redirection-301-302)**<br>
+  > **:bookmark: [Use return directive instead of rewrite for redirects - Performance - P2](RULES.md#beginner-use-return-directive-instead-of-rewrite-for-redirects)**
+
+HTTP allows servers to redirect a client request to a different location. This is useful when moving content to a new URL, when deleting pages or when changing domain names or merging websites.
+
+URL redirection is done for various reasons:
+
+- for URL shortening
+- to prevent broken links when web pages are moved
+- to allow multiple domain names belonging to the same owner to refer to a single web site
+- to guide navigation into and out of a website
+- for privacy protection
+- for hostile purposes such as phishing attacks or malware distribution
+
+<sup><i>It comes from [Wikipedia - URL redirection](https://en.wikipedia.org/wiki/URL_redirection).</i></sup>
+
+I recommend to read:
+
+- [Redirections in HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)
+- [301 101: How Redirects Work](https://www.digitalthirdcoast.com/blog/301-101-redirects-work)
+- [Modify 301/302 response body (from this handbook)](HELPERS.md#modify-301302-response-body)
+- [Redirect POST request with payload to external endpoint (from this handbook)](HELPERS.md#redirect-post-request-with-payload-to-external-endpoint)
+
 ##### `try_files` directive
 
 We have one more very interesting and important directive: `try_files` (from the `ngx_http_core_module`). This directive tells NGINX to check for the existence of a named set of files or directories (checks files conditionally breaking on success).
@@ -1908,9 +2063,19 @@ server {
 
 On the other hand, `try_files` is relatively primitive. When encountered, NGINX will look for any of the specified files physically in the directory matched by the location block. If they don’t exist, NGINX does an internal redirect to the last entry in the directive.
 
+Additionally, think about dont't check for the existence of directories:
+
+```nginx
+# Use this to take out an extra filesystem stat():
+try_files $uri @index;
+
+# Instead of this:
+try_files $uri $uri/ @index;
+```
+
 ##### `if`, `break` and `set`
 
-  > **:bookmark: [Avoid checks server_name with if directive - Performance - P2](#beginner-avoid-checks-server_name-with-if-directive)**
+  > **:bookmark: [Avoid checks server_name with if directive - Performance - P2](RULES.md#beginner-avoid-checks-server_name-with-if-directive)**
 
 The `ngx_http_rewrite_module` also provides additional directives:
 
@@ -1934,6 +2099,14 @@ The `ngx_http_rewrite_module` also provides additional directives:
 
   > _The `if` context in NGINX is provided by the rewrite module and this is the primary intended use of this context. Since NGINX will test conditions of a request with many other purpose-made directives, `if` **should not** be used for most forms of conditional execution. This is such an important note that the NGINX community has created a page called [if is evil](https://www.nginx.com/resources/wiki/start/topics/depth/ifisevil/) (yes, it's really evil and in most cases not needed)._
 
+  A long time ago I found this:
+
+  > _That’s actually not true and shows you don’t understand the problem with it. When the `if` statement ends with `return` directive, there is no problem and it’s safe to use._
+
+  On the other hand, official documentation say:
+
+  > _Directive if has problems when used in location context, in some cases it doesn’t do what you expect but something completely different instead. In some cases it even segfaults. It’s generally a good idea to avoid it if possible._
+
 - `set` - sets a value for the specified variable. The value can contain text, variables, and their combination
 
 Example of usage `if` and `set` directives:
@@ -1942,19 +2115,19 @@ Example of usage `if` and `set` directives:
 # It comes from: https://gist.github.com/jrom/1760790:
 if ($request_uri = /) {
 
-  set $test  A;
+  set $test A;
 
 }
 
 if ($host ~* example.com) {
 
-  set $test  "${test}B";
+  set $test "${test}B";
 
 }
 
 if ($http_cookie !~* "auth_token") {
 
-  set $test  "${test}C";
+  set $test "${test}C";
 
 }
 
@@ -2192,13 +2365,43 @@ request URI
 
 ##### `allow` and `deny`
 
-Both comes from the `ngx_http_access_module` module allows limiting access to certain client addresses. You can combining `allow/deny` rules
+  > **:bookmark: [Take care about your ACL rules - Hardening - P1](RULES.md#beginner-take-care-about-your-acl-rules)**<br>
+  > **:bookmark: [Reject unsafe HTTP methods - Hardening - P1](RULES.md#beginner-reject-unsafe-http-methods)**
 
-The easiest path would be to start out by denying all access, then only granting access to those locations you want.
+Both comes from the `ngx_http_access_module` module and allows limiting access to certain client addresses. You can combining `allow/deny` rules.
 
   > `deny` will always return 403 error code.
 
+The easiest path would be to start out by denying all access, then only granting access to those locations you want. For example:
+
+```nginx
+location / {
+
+  # without 'satisfy any' both should be passed:
+  satisfy any;
+  allow 192.168.0/0/16;
+  deny all;
+
+  # sh -c "echo -n 'user:' >> /etc/nginx/.secret"
+  # sh -c "openssl passwd -apr1 >> /etc/nginx/.secret"
+  auth_basic "Restricted Area";
+  auth_basic_user_file /etc/nginx/.secret;
+
+  root   /usr/share/nginx/html;
+  index  index.html index.htm;
+
+}
+```
+
 Putting `satisfy any;` in your configuration tells NGINX to accept either http authentication, or IP restriction. By default, when you define both, it will expect both.
+
+See also [this](https://serverfault.com/a/748373) answer:
+
+  > As you've found, it isn't advisable to but the auth settings at the server level because they will apply to all locations. While it is possible to turn basic auth off there doesn't appear to be a way to clear an existing IP whitelist.
+  >
+  > A better solution would be to add the authentication to the / location so that it isn't inherited by /hello.
+  >
+  > The problem comes if you have other locations that require the basic auth and IP whitelisting in which case it might be worth considering moving the auth components to an include file or nesting them under /.
 
 Both directives may work unexpectedly! Look at the following example:
 
@@ -2217,10 +2420,10 @@ server {
 }
 ```
 
-If you generate reqeust:
+If you generate a reqeust:
 
 ```bash
-curl -i https://example.com
+curl -i https://example.com/test
 HTTP/2 200
 date: Wed, 11 Nov 2018 10:02:45 GMT
 content-length: 13
@@ -2230,13 +2433,13 @@ content-type: text/plain
 it's all okay
 ```
 
-Why? Look at [Request processing stages](doc/NGINX_BASICS.md#request-processing-stages) chapter. That's because NGINX process request in phases, and `rewrite` phase (where `return` belongs) goes before `access` phase (where `deny` works).
+Why? Look at [Request processing stages](#request-processing-stages) chapter. That's because NGINX process request in phases, and `rewrite` phase (where `return` belongs) goes before `access` phase (where `deny` works).
 
 ##### `uri` vs `request_uri`
 
   > **:bookmark: [Use `$request_uri` to avoid using regular expressions - Performance - P2](RULES.md#beginner-use-request_uri-to-avoid-using-regular-expressions)**
 
-`$request_uri` is the original request (for example, `/foo/bar.php?arg=baz` includes arguments and can't be modified) but `$uri` refers to the altered URI so `$uri` is not equivalent to `$request_uri`.
+`$request_uri` is the original request (for example `/foo/bar.php?arg=baz` includes arguments and can't be modified) but `$uri` refers to the altered URI so `$uri` is not equivalent to `$request_uri`.
 
 See [this](https://stackoverflow.com/a/48709976) great and short explanation by [Richard Smith](https://stackoverflow.com/users/4862445/richard-smith):
 
@@ -2250,7 +2453,7 @@ See [this](https://stackoverflow.com/a/48709976) great and short explanation by 
   >
   > Most of the time you would use `$uri`, because it is normalised. Using `$request_uri` in the wrong place can cause URL encoded characters to become doubly encoded.
 
-Both excludes the schema (`https://` and the port (implicit 443) in both examples above) as defined by [RFC2616](https://tools.ietf.org/html/rfc2616#section-3.2.2) <sup>[IETF]</sup> for the URL:
+Both excludes the schema (`https://` and the port (implicit 443) in both examples above) as defined by [RFC 2616 - http URL](https://tools.ietf.org/html/rfc2616#section-3.2.2) <sup>[IETF]</sup> for the URL:
 
 ```
 http_URL = "http(s):" "//" host [ ":" port ] [ abs_path [ "?" query ]]
@@ -2267,11 +2470,7 @@ Take a look at the following table:
 | `https://example.com/foo/bar?do=test` | `/foo/bar?do=test` | `/foo/bar` |
 | `https://example.com/rfc2616-sec3.html#sec3.2` | `/rfc2616-sec3.html` | `/rfc2616-sec3.html` |
 
-Remember:
-
-  > Another way to repeat the location is to use the `proxy_pass` directive.
-
-Which is quite easy:
+Another way to repeat the location is to use the `proxy_pass` directive which is quite easy:
 
 ```nginx
 location /app/ {
@@ -2298,7 +2497,7 @@ By default, NGINX compresses responses only with MIME type text/html using the `
 To enable `gzip` compression:
 
 ```nginx
-gzip on
+gzip on;
 ```
 
 To compress responses with other MIME types, include the `gzip_types` directive and list the additional types:
@@ -2328,7 +2527,7 @@ gzip_min_length 128;
 
 For more information see [Finding the Nginx gzip_comp_level Sweet Spot](https://mjanja.ch/2015/03/finding-the-nginx-gzip_comp_level-sweet-spot/).
 
-NGINX also provides static compression with static module. It is better, for 2 reasons:
+Compressing resources on-the-fly adds CPU-load and latency (wait for the compression to be done) every time a resource is served. NGINX also provides static compression with static module. It is better, for 2 reasons:
 
 - you don't have to gzip for each request
 - you can use a higher gzip level
@@ -2348,7 +2547,20 @@ location ^~ /assets/ {
 
 You should put the `gzip_static on;` inside the blocks that configure static files, but if you’re only running one site, it’s safe to just put it in the http block.
 
-So, for example, to service a request for `/foo/bar/file`, NGINX tries to find and send the file `/foo/bar/file.gz`.
+  > NGINX does not automatically compress the files for you. You will have to do this yourself.
+
+To compress files manually:
+
+```bash
+cd assets/
+while IFS='' read -r -d '' _fd; do
+
+  gzip -N4c ${_fd} > ${_fd}.gz
+
+done < <(find . -maxdepth 1 -type f -regex ".*\.\(css\|js\|jpg\|gif\|png\|jpeg\)" -print0)
+```
+
+So, for example, to service a request for `/foo/bar/file`, NGINX tries to find and send the file `/foo/bar/file.gz` that directly, so no extra CPU-cost or latency is added to your requests, speeding up the serving of your app.
 
 ##### What is the best NGINX compression gzip level?
 
@@ -2360,6 +2572,73 @@ I think the ideal compression level seems to be between 4 and 6. The following d
 gzip_comp_level 6;
 ```
 
+#### Hash tables
+
+  > Before start reading this chapter I recommend [Hash tables explained](https://yourbasic.org/algorithms/hash-tables-explained/).
+
+To assist with the rapid processing of requests, NGINX uses hash tables. NGINX hash, though in principle is same as typical hash lists, but it has significant differences.
+
+They are not meant for applications that add and remove elements dynamicall but are specifically designed to hold set of init time elements arranged in hash list. All elements that are put in the hash list are known while creating the hash list itself. No dynamic addtion or deletion is possible here.
+
+This hash table is constructed and compiled during restart or reload and afterwards it's running very fast. Main purpose seems to be speeding up the lookup of one time added elements.
+
+Look at the [Setting up hashes](http://nginx.org/en/docs/hash.html) from official documentation:
+
+  > _To quickly process static sets of data such as server names, map directive’s values, MIME types, names of request header strings, NGINX uses hash tables. During the start and each re-configuration NGINX selects the minimum possible sizes of hash tables such that the bucket size that stores keys with identical hash values does not exceed the configured parameter (hash bucket size). The size of a table is expressed in buckets. The adjustment is continued until the table size exceeds the hash max size parameter. Most hashes have the corresponding directives that allow changing these parameters._
+
+I also recommend [Optimizations](https://www.nginx.com/resources/wiki/start/topics/tutorials/optimizations/) section and [nginx - Hashing scheme](http://netsecinfo.blogspot.com/2010/01/nginx-hashing-scheme.html) explanation.
+
+Some important information (based on [this](https://serverfault.com/questions/419847/nginx-setting-server-names-hash-max-size-and-server-names-hash-bucket-size/786726#786726) amazing research by [brablc](https://serverfault.com/users/94256/brablc)):
+
+- the general recommendation would be to keep both values as small as possible and as less collisions as possible (during startup and with each reconfiguration, NGINX selects the smallest possible size for the hash tables)
+
+- it depends on your setup, you can reduce the number of server from the table and `reload` the NGINX instead of `restart`
+
+- if NGINX gave out communication about the need for increasing `hash_max_size` or `hash_bucket_size`, then it is first necessary to increase the first parameter
+
+- bigger `hash_max_size` uses more memory, bigger `hash_bucket_size` uses more CPU cycles during lookup and more transfers from main memory to cache. If you have enough memory increase `hash_max_size` and try to keep `hash_bucket_size` as low as possible
+
+- each hash table entry consumes space in a bucket. The space required is the length of the key (with some overhead to store the domain’s actual length as well), e.g. domain name
+
+  > Since `stage.api.example.com` is 21 characters, all entries consume at least 24 bytes in a bucket, and most consume 32 bytes or more.
+
+- as you increase the number of entries, you have to increase the size of the hash table and/or the number of hash buckets in the table
+
+  > If NGINX complains increase `hash_max_size` first as long as it complains. If the number exceeds some big number (32769 for instance), increase `hash_bucket_size` to multiple of default value on your platform as long as it complains. If it does not complain anymore, decrease `hash_max_size` back as long as it does not complain. Now you have the best setup for your set of server names (each set of server names may need different setup).
+
+- with a hash bucket size of 64 or 128, a bucket is full after 4 or 5 entries hash to it
+
+- `hash_max_size` is not related to number of server names directly, if number of servers doubles, you may need to increase `hash_max_size` 10 times or even more to avoid collisions. If you cannot avoid them, you have to increase `hash_bucket_size`
+
+- if you have `hash_max_size` less than 10000 and small `hash_bucket_size`, you can expect long loading time because NGINX would try to find optimal hash size in a loop (see [src/core/ngx_hash.c](https://github.com/nginx/nginx/blob/c3aed0a23392a509f64b740064f5f6633e8c89d8/src/core/ngx_hash.c#L289))
+
+- if you have `hash_max_size` bigger than 10000, there will be only 1000 loops performed before it would complain
+
+##### Server names hash table
+
+The hash with the names of servers are controlled by the following directives (inside `http` context):
+
+- `server_names_hash_max_size` - sets the maximum size of the server names hash tables; default value: 512
+- `server_names_hash_bucket_size` - sets the bucket size for the server names hash tables; default values: 32, 64, or 128 (the default value depends on the size of the processor’s cache line)
+
+  > Parameter `server_names_hash_bucket_size` is always equalized to the size, multiple to the size of the line of processor cache.
+
+If server name is defined as `too.long.server.name.example.com` then NGINX will fail to start and display the error message like:
+
+```
+nginx: [emerg] could not build server_names_hash, you should increase server_names_hash_bucket_size: 64
+```
+
+To fix this, you should `reload` the NGINX or increase the `server_names_hash_bucket_size` directive value to the next power of two (in this case to 128).
+
+If a large number of server names are defined, and NGINX complained with the following error:
+
+```
+nginx: [emerg] could not build the server_names_hash, you should increase either server_names_hash_max_size: 512 or server_names_hash_bucket_size: 32
+```
+
+Try to set the `server_names_hash_max_size` to a number close to the number of server names. Only if this does not help, or if NGINX's start time is unacceptably long, try to increase the `server_names_hash_bucket_size` parameter.
+
 #### Log files
 
   > **:bookmark: [Use custom log formats - Debugging - P4](RULES.md#beginner-use-custom-log-formats)**
@@ -2370,6 +2649,8 @@ By default:
 
 - the access log is located in `logs/access.log`, but I suggest you take it to `/var/log/nginx` directory
 - data is written in the predefined `combined/main` format
+- `access.log` stores record of each request and log format is fully configurable
+- `error.log` contains important operational messages
 
 It is the equivalent to the following configuration:
 
@@ -2396,6 +2677,12 @@ http {
 ```
 
 For more information please see [Configuring Logging](https://docs.nginx.com/nginx/admin-guide/monitoring/logging/).
+
+  > Set `access log off;` to completely turns off logging.
+
+  > If you don't want 404 errors to show in your NGINX error logs, you should set `log_not_found off;`.
+
+  > If you want to enable logging of subrequests into `access_log`, you should set `log_subrequest on;` and change the default logging format (you have to log `$uri` to see the difference). There is [great explanation](https://serverfault.com/questions/904396/how-to-identify-subrequests-in-nginx-log-files/922956#922956) about how to identify subrequests in NGINX log files.
 
 I also recommend to read:
 
@@ -2462,12 +2749,14 @@ The following is a list of all severity levels:
 | `info` | informational messages that aren’t necessary to read but may be good to know |
 | `notice` | something normal happened that is worth noting |
 | `warn` | something unexpected happened, however is not a cause for concern |
-| `error` | something was unsuccessful, contains the action of limiting rules |
+| `error` | something was unsuccessful, contains the action of limiting rules (default) |
 | `crit` | important problems that need to be addressed |
 | `alert` | severe situation where action is needed promptly |
 | `emerg` | the system is in an unusable state and requires immediate attention |
 
 For example: if you set `crit` error log level, messages of `crit`, `alert`, and `emerg` levels are logged.
+
+  > For debug logging to work, NGINX needs to be built with `--with-debug`.
 
 Default values for the error level:
 
@@ -2475,7 +2764,7 @@ Default values for the error level:
 - in the HTTP section - `crit`
 - in the server section - `crit`
 
-#### How to log the start time of a request?
+##### How to log the start time of a request?
 
 The most logging information requires the request to complete (status code, bytes sent, durations, etc). If you want to log the start time of a request in NGINX you should apply a [patch](https://gist.github.com/rkbodenner/318681) that exposes request start time as a variable.
 
@@ -2488,9 +2777,9 @@ The `$time_local` variable contains the time when the log entry is written so wh
 - `try_files` phase
 - log phase
 
-Since the log phase is the last one, `$time_local` variable is much more colse to the end of the request than it's start.
+Since the log phase is the last one, `$time_local` variable is much more close to the end of the request than it's start.
 
-#### How to log the HTTP request body?
+##### How to log the HTTP request body?
 
 Nginx doesn't parse the client request body unless it really needs to, so it usually does not fill the `$request_body` variable.
 
@@ -2505,7 +2794,7 @@ So you really need to either add the `proxy_pass` or `fastcgi_pass` directives t
 # 1) Set log format:
 log_format req_body_logging '$remote_addr - $remote_user [$time_local] '
                             '"$request" $status $body_bytes_sent '
-                            '"$http_referer" "$http_user_agent"' "$request_body"';
+                            '"$http_referer" "$http_user_agent" "$request_body"';
 
 # 2) Limit the request body size:
 client_max_body_size 1k;
@@ -2519,8 +2808,8 @@ server {
 
   location /api/v4 {
 
-    access_log    logs/access_req_body.log req_body_logging;
-    proxy_pass    http://127.0.0.1;
+    access_log logs/access_req_body.log req_body_logging;
+    proxy_pass http://127.0.0.1;
 
     ...
 
@@ -2528,8 +2817,8 @@ server {
 
   location = /post.php {
 
-    access_log    /var/log/nginx/postdata.log req_body_logging;
-    fastcgi_pass  php_cgi;
+    access_log /var/log/nginx/postdata.log req_body_logging;
+    fastcgi_pass php_cgi;
 
     ...
 
@@ -2538,7 +2827,7 @@ server {
 }
 ```
 
-For this, you can also use [echo](https://github.com/openresty/echo-nginx-module) module. To log a request body, what we need is to use the `echo_read_request_body` command and the `$request_body` variable (contains the request body of the echo module).
+For this, you can also use [echo](https://github.com/openresty/echo-nginx-module) module. To log a request body, what we need is to use the `echo_read_request_body` directive and the `$request_body` variable (contains the request body of the echo module).
 
   > `echo_read_request_body` explicitly reads request body so that the `$request_body` variable will always have non-empty values (unless the body is so big that it has been saved by NGINX to a local temporary file).
 
@@ -2566,6 +2855,49 @@ http {
 
 }
 ```
+
+##### NGINX upstream variables returns 2 values
+
+For example:
+
+```
+upstream_addr 192.168.50.201:8080 : 192.168.50.201:8080
+upstream_bytes_received 427 : 341
+upstream_connect_time 0.001 : 0.000
+upstream_header_time 0.003 : 0.001
+upstream_response_length 0 : 0
+upstream_response_time 0.003 : 0.001
+upstream_status 401 : 200
+```
+
+Below is a short description of each of them:
+
+- `$upstream_addr` - keeps the IP address and port, or the path to the UNIX-domain socket of the upstream server. If several servers were contacted during request processing, their addresses are separated by commas, e.g. `192.168.1.1:80, 192.168.1.2:80, unix:/tmp/sock`. If an internal redirect from one server group to another happens, initiated by `X-Accel-Redirect` or `error_page`, then the server addresses from different groups are separated by colons, e.g. `192.168.1.1:80, 192.168.1.2:80, unix:/tmp/sock : 192.168.10.1:80, 192.168.10.2:80`
+- `$upstream_cache_status` - keeps the status of accessing a response cache (0.8.3). The status can be either `MISS`, `BYPASS`, `EXPIRED`, `STALE`, `UPDATING`, `REVALIDATED`, or `HIT`
+- `$upstream_connect_time` - time spent on establishing a connection with an upstream server
+- `$upstream_cookie_` - cookie with the specified name sent by the upstream server in the `Set-Cookie` response header field (1.7.1). Only the cookies from the response of the last server are saved
+- `$upstream_header_time` - time between establishing a connection and receiving the first byte of the response header from the upstream server
+- `$upstream_http_` - keep server response header fields. For example, the `Server` response header field is available through the `$upstream_http_server` variable. The rules of converting header field names to variable names are the same as for the variables that start with the `$http_` prefix. Only the header fields from the response of the last server are saved
+- `$upstream_response_length` - keeps the length of the response obtained from the upstream server (0.7.27); the length is kept in bytes. Lengths of several responses are separated by commas and colons like addresses in the `$upstream_addr` variable
+- `$upstream_response_time` - time between establishing a connection and receiving the last byte of the response body from the upstream server
+- `$upstream_status` - keeps status code of the response obtained from the upstream server. Status codes of several responses are separated by commas and colons like addresses in the `$upstream_addr` variable
+
+Official documentation say:
+
+  > _[...] If several servers were contacted during request processing, their addresses are separated by commas. [...] If an internal redirect from one server group to another happens, initiated by “X-Accel-Redirect” or error_page, then the server addresses from different groups are separated by colons_
+
+This means that it made multiple requests to a backend, most likely you either have a bare `proxy_pass` host that resolves to different IPs (frequently the case with something like Amazon ELB as an origin), are you have a configured upstream that has multiple servers. Unless disabled, the proxy module will make round robin attempts against all healthy backends. This can be configured from `proxy_next_upstream_*` directives.
+
+For example if this is not the desired behavior, you can just do (specifies in which cases a request should be passed to the next server):
+
+```nginx
+# One should bear in mind that passing a request to the next server is only possible
+# if nothing has been sent to a client yet. That is, if an error or timeout occurs
+# in the middle of the transferring of a response, fixing this is impossible.
+proxy_next_upstream off;
+```
+
+For more information please see [ngx_http_upstream_module](http://nginx.org/en/docs/http/ngx_http_upstream_module.html) and [proxy_next_upstream](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream).
 
 #### Reverse proxy
 
@@ -2603,7 +2935,7 @@ In my opinion, the two most important things related to the reverse proxy are:
 - the way of requests forwarded to the backend
 - the type of headers forwarded to the backend
 
-If we talking about security of the proxy server look at this recommendations of the National Institute of Standards and Technology about [Guidelines on Securing Public Web Servers](https://www.nist.gov/publications/guidelines-securing-public-web-servers). This document is a good starting point. Is old but still has interesting solutions and suggestions.
+If we talking about security of the proxy server look at this recommendations about [Guidelines on Securing Public Web Servers](https://www.nist.gov/publications/guidelines-securing-public-web-servers) <sup>[NIST]</sup>. This document is a good starting point. Is old but still has interesting solutions and suggestions.
 
 There is a [great explanation](https://serverfault.com/a/25095) about the benefits of improving security through the use of a reverse proxy server.
 
@@ -2641,7 +2973,7 @@ It is possible to proxy requests to:
   ```nginx
   upstream bk_front {
 
-    server 192.168.252.20:8080  weight=5;
+    server 192.168.252.20:8080 weight=5;
     server 192.168.252.21:8080
 
   }
@@ -2650,31 +2982,31 @@ It is possible to proxy requests to:
 
     location / {
 
-      proxy_pass    http://bk_front;
+      proxy_pass http://bk_front;
 
     }
 
     location /api {
 
-      proxy_pass    http://192.168.21.20:8080;
+      proxy_pass http://192.168.21.20:8080;
 
     }
 
     location /info {
 
-      proxy_pass    http://localhost:3000;
+      proxy_pass http://localhost:3000;
 
     }
 
     location /ra-client {
 
-      proxy_pass    http://10.0.11.12:8080/guacamole/;
+      proxy_pass http://10.0.11.12:8080/guacamole/;
 
     }
 
     location /foo/bar/ {
 
-      proxy_pass    http://www.example.com/url/;
+      proxy_pass http://www.example.com/url/;
 
     }
 
@@ -2694,8 +3026,8 @@ It is possible to proxy requests to:
 
       location ~ ^/.+\.php(/|$) {
 
-        fastcgi_pass    127.0.0.1:9000;
-        include         /etc/nginx/fcgi_params;
+        fastcgi_pass 127.0.0.1:9000;
+        include /etc/nginx/fcgi_params;
 
       }
 
@@ -2711,10 +3043,10 @@ It is possible to proxy requests to:
 
       location / {
 
-        root            html;
-        uwsgi_pass      django_cluster;
-        uwsgi_param     UWSGI_SCRIPT testapp;
-        include         /etc/nginx/uwsgi_params;
+        root html;
+        uwsgi_pass django_cluster;
+        uwsgi_param UWSGI_SCRIPT testapp;
+        include /etc/nginx/uwsgi_params;
 
       }
 
@@ -2730,8 +3062,8 @@ It is possible to proxy requests to:
 
       location / {
 
-        scgi_pass       127.0.0.1:4000;
-        include         /etc/nginx/scgi_params;
+        scgi_pass 127.0.0.1:4000;
+        include /etc/nginx/scgi_params;
 
       }
 
@@ -2747,16 +3079,16 @@ It is possible to proxy requests to:
 
       location / {
 
-        set            $memcached_key "$uri?$args";
+        set $memcached_key "$uri?$args";
         memcached_pass memc_instance:4004;
 
-        error_page     404 502 504 = @memc_fallback;
+        error_page 404 502 504 = @memc_fallback;
 
       }
 
       location @memc_fallback {
 
-        proxy_pass     http://backend;
+        proxy_pass http://backend;
 
       }
 
@@ -2772,17 +3104,17 @@ It is possible to proxy requests to:
 
       location / {
 
-        set            $redis_key $uri;
+        set $redis_key $uri;
 
-        redis_pass     redis_instance:6379;
-        default_type   text/html;
-        error_page     404 = /fallback;
+        redis_pass redis_instance:6379;
+        default_type text/html;
+        error_page 404 = /fallback;
 
       }
 
       location @fallback {
 
-        proxy_pass     http://backend;
+        proxy_pass http://backend;
 
       }
 
@@ -2816,15 +3148,15 @@ location /public/ {
 }
 ```
 
-and go to `http://example.com/public`, NGINX will automatically redirect you to `http://example.com/public/`.
+And go to `http://example.com/public`, NGINX will automatically redirect you to `http://example.com/public/`.
 
 Look also at this example:
 
 ```nginx
 location /foo/bar/ {
 
-  # proxy_pass  http://example.com/url/;
-  proxy_pass    http://192.168.100.20/url/;
+  # proxy_pass http://example.com/url/;
+  proxy_pass http://192.168.100.20/url/;
 
 }
 ```
@@ -2833,17 +3165,17 @@ If the URI is specified along with the address, it replaces the part of the requ
 
 If the address is specified without a URI, or it is not possible to determine the part of URI to be replaced, the full request URI is passed (possibly, modified).
 
-Look also at this. Here is an example with trailing slash in location, but no trailig slash in `proxy_pass`:
+Here is an example with trailing slash in location, but no trailig slash in `proxy_pass`:
 
 ```nginx
 location /foo/ {
 
-  proxy_pass  http://127.0.0.1:8080/bar;
+  proxy_pass http://127.0.0.1:8080/bar;
 
 }
 ```
 
-See how `bar` and `path` concatenates. If one go to address `http://yourserver.com/foo/path/id?param=1` NGINX will proxy request to `http://127.0.0.1/barpath/id?param=1`.
+See how `bar` and `path` concatenates. If one go to `http://yourserver.com/foo/path/id?param=1` NGINX will proxy request to `http://127.0.0.1/barpath/id?param=1`.
 
 As stated in NGINX documentation if `proxy_pass` used without URI (i.e. without path after `server:port`) NGINX will put URI from original request exactly as it was with all double slashes, `../` and so on.
 
@@ -2863,38 +3195,12 @@ In other words:
 
   > You usually always want a trailing slash, never want to mix with and without trailing slash, and only want without trailing slash when you want to concatenate a certain path component together (which I guess is quite rarely the case). Note how query parameters are preserved.
 
-##### Response headers
-
-  > **:bookmark: [Set the HTTP headers with add_header directive properly - Base Rules - P1](#beginner-set-the-http-headers-with-add_header-directive-properly)**
-
-`add_header` directive allows you to define an arbitrary response header (mostly for informational/debugging purposes) and value to be included in all response codes which are equal to:
-
-- 2xx series: 200, 201, 204, 206
-- 3xx series: 301, 302, 303, 304, 307, 308
-
-For example:
-
-```nginx
-add_header Custom-Header Value;
-```
-
-  > To change (adding or removing) existing headers you should use a [headers-more-nginx-module](https://github.com/openresty/headers-more-nginx-module) module.
-
-There is one thing you must watch out for if you use `add_header` directive. See the following explanations:
-
-- [Nginx add_header configuration pitfall](https://blog.g3rt.nl/nginx-add_header-pitfall.html)
-- [Be very careful with your add_header in Nginx! You might make your site insecure](https://www.peterbe.com/plog/be-very-careful-with-your-add_header-in-nginx)
-
-This is described in the official documentation:
-
-  > _There could be several `add_header` directives. These directives are inherited from the previous level if and only if there are no add_header directives defined on the current level._
-
-However - and this is important - as you now have defined a header in your `server` context, all the remaining headers defined in the `http` context will no longer be inherited. Means, you’ve to define them in your `server` context again (or alternatively ignore them if they’re not important for your site).
-
 ##### Passing headers to the backend
 
-  > **:bookmark: [Always pass Host, X-Real-IP, and X-Forwarded headers to the backend - Reverse Proxy - P2](#beginner-always-pass-host-x-real-ip-and-x-forwarded-headers-to-the-backend)**<br>
-  > **:bookmark: [Use custom headers without X- prefix - Reverse Proxy - P3](#beginner-use-reload-option-to-change-configurations-on-the-fly)**
+  > **:bookmark: [Set the HTTP headers with add_header and proxy_*_header directives properly - Base Rules - P1](RULES.md#beginner-set-the-http-headers-with-add_header-and-proxy__header-directives-properly)**<br>
+  > **:bookmark: [Remove support for legacy and risky HTTP headers - Hardening - P1](RULES.md#beginner-remove-support-for-legacy-and-risky-http-headers)**<br>
+  > **:bookmark: [Always pass Host, X-Real-IP, and X-Forwarded headers to the backend - Reverse Proxy - P2](RULES.md#beginner-always-pass-host-x-real-ip-and-x-forwarded-headers-to-the-backend)**<br>
+  > **:bookmark: [Use custom headers without X- prefix - Reverse Proxy - P3](RULES.md#beginner-use-reload-option-to-change-configurations-on-the-fly)**
 
 By default, NGINX redefines two header fields in proxied requests:
 
@@ -2906,37 +3212,54 @@ When NGINX proxies a request, it automatically makes some adjustments to the req
 
 - NGINX drop empty headers. There is no point of passing along empty values to another server; it would only serve to bloat the request
 
-- NGINX, by default, will consider any header that contains underscores as invalid. It will remove these from the proxied request. If you wish to have NGINX interpret these as valid, you can set the `underscores_in_headers` directive to `on`, otherwise your headers will never make it to the backend server
+- NGINX, by default, will consider any header that contains underscores as invalid. It will remove these from the proxied request. If you wish to have NGINX interpret these as valid, you can set the `underscores_in_headers` directive to `on`, otherwise your headers will never make it to the backend server. Underscores in header fields are allowed ([RFC 7230, sec. 3.2.](https://tools.ietf.org/html/rfc7230#section-3.2)), but indeed uncommon
 
 It is important to pass more than just the URI if you expect the upstream server handle the request properly. The request coming from NGINX on behalf of a client will look different than a request coming directly from a client.
 
   > Please read [Managing request headers](https://www.nginx.com/resources/wiki/start/topics/examples/headers_management/) from the official wiki.
 
-NGINX use the `proxy_set_header` directive to sets headers that sends to the backend servers.
+In NGINX does support arbitrary request header field. Last part of a variable name is the field name converted to lower case with dashes replaced by underscores:
 
-  > HTTP headers are used to transmit additional information between client and server. `add_header` sends headers to the client (browser) and will work on successful requests only, unless you set up `always` parameter. `proxy_set_header` sends headers to the backend server.
+```
+$http_name_of_the_header_key
+```
+
+If you have `X-Real-IP = 127.0.0.1` in header, you can use `$http_x_real_ip` to get `127.0.0.1`.
+
+Use the `proxy_set_header` directive to sets headers that sends to the backend servers.
+
+  > HTTP headers are used to transmit additional information between client and server. `add_header` sends headers to the client (browser) and will work on successful requests only, unless you set up `always` parameter. `proxy_set_header` sends headers to the backend server. If the value of a header field is an empty string then this field will not be passed to a proxied server.
 
 It's also important to distinguish between request headers and response headers. Request headers are for traffic inbound to the webserver or backend app. Response headers are going the other way (in the HTTP response you get back using client, e.g. curl or browser).
 
-Ok, so look at following short explanation about proxy directives (for more information about valid header values please see [this](RULES.md#beginner-always-pass-host-x-real-ip-and-x-forwarded-stack-headers-to-the-backend) rule):
+Ok, so look at the following short explanation about proxy directives (for more information about valid header values please see [this](RULES.md#beginner-always-pass-host-x-real-ip-and-x-forwarded-stack-headers-to-the-backend) rule):
 
 - `proxy_http_version` - defines the HTTP protocol version for proxying, by default it it set to 1.0. For Websockets and keepalive connections you need to use the version 1.1:
 
   ```nginx
-  proxy_http_version  1.1;
+  proxy_http_version 1.1;
   ```
 
 - `proxy_cache_bypass` - sets conditions under which the response will not be taken from a cache:
 
   ```nginx
-  proxy_cache_bypass  $http_upgrade;
+  proxy_cache_bypass $http_upgrade;
   ```
 
-- `proxy_intercept_errors` - means that any response with HTTP code 300 or greater is handled by the `error_page` directive and ensures that if the proxied backend returns an error status, NGINX will be the one showing the error page (as opposed to the error page on the backend side):
+- `proxy_intercept_errors` - means that any response with HTTP code 300 or greater is handled by the `error_page` directive and ensures that if the proxied backend returns an error status, NGINX will be the one showing the error page (as opposed to the error page on the backend side). If you want certain error pages still being delivered from the upstream server, then simply don't specify the `error_page <code>` on the reverse proxy (without this, NGINX will forward the error page coming from the upstream server to the client):
 
   ```nginx
   proxy_intercept_errors on;
-  error_page 500 503 504 @debug;  # go to the @debug location
+  error_page 404 /404.html; # from proxy
+
+  # To bypass error intercepting (if you have proxy_intercept_errors on):
+  # 1 - don't specify the error_page 404 on the reverse proxy
+  # 2 - go to the @debug location
+  error_page 500 503 504 @debug;
+  location @debug {
+    proxy_intercept_errors off;
+    proxy_pass http://backend;
+  }
   ```
 
 - `proxy_set_header` - allows redefining or appending fields to the request header passed to the proxied server
@@ -2988,7 +3311,7 @@ If you want to read about custom headers, take a look at [Why we need to depreca
 
 ###### Importance of the `Host` header
 
-  > **:bookmark: [Set and pass Host header only with $host variable - Reverse Proxy - P2](#beginner-set-and-pass-host-header-only-with-host-variable)**
+  > **:bookmark: [Set and pass Host header only with $host variable - Reverse Proxy - P2](RULES.md#beginner-set-and-pass-host-header-only-with-host-variable)**
 
 The `Host` header tells the webserver which virtual host to use (if set up). You can even have the same virtual host using several aliases (domains and wildcard-domains). This why the host header exists. The host header specifies which website or web application should process an incoming HTTP request.
 
@@ -2996,7 +3319,7 @@ In NGINX, `$host` equals `$http_host`, lowercase and without the port number (if
 
 But look at this:
 
-  > _An unchanged "Host" request header field can be passed with `$http_host`. However, if this field is not present in a client request header then nothing will be passed. In such a case it is better to use the `$host` variable - its value equals the server name in the "Host" request header field or the primary server name if this field is not present._
+  > _An unchanged `Host` request header field can be passed with `$http_host`. However, if this field is not present in a client request header then nothing will be passed. In such a case it is better to use the `$host` variable - its value equals the server name in the `Host` request header field or the primary server name if this field is not present._
 
 For example, if you set `Host: MASTER:8080`, `$host` will be "master" (while `$http_host` will be `MASTER:8080` as it just reflects the whole header).
 
@@ -3004,7 +3327,7 @@ Look also at [$10k host header](https://www.ezequiel.tech/p/10k-host-header.html
 
 ###### Redirects and `X-Forwarded-Proto`
 
-  > **:bookmark: [Don't use X-Forwarded-Proto with $scheme behind reverse proxy - Reverse Proxy - P1](#beginner-dont-use-x-forwarded-proto-with-scheme-behind-reverse-proxy)**
+  > **:bookmark: [Don't use X-Forwarded-Proto with $scheme behind reverse proxy - Reverse Proxy - P1](RULES.md#beginner-dont-use-x-forwarded-proto-with-scheme-behind-reverse-proxy)**
 
 This header is very important because it prevent a redirect loop. When used inside HTTPS server block each HTTP response from the proxied server will be rewritten to HTTPS. Look at the following example:
 
@@ -3024,16 +3347,27 @@ In step 6 above, the Proxy is setting the HTTP header `X-Forwarded-Proto: https`
 
 You can read about how to set it up correctly here:
 
-- [Set correct scheme passed in X-Forwarded-Proto](RULES.md#set-correct-scheme-passed-in-x-forwarded-proto)
-- [Don't use X-Forwarded-Proto with $scheme behind reverse proxy](RULES.md#beginner-dont-use-x-forwarded-proto-with-scheme-behind-reverse-proxy)
+- [Set correct scheme passed in X-Forwarded-Proto](HELPERS.md#set-correct-scheme-passed-in-x-forwarded-proto)
+- [Don't use X-Forwarded-Proto with $scheme behind reverse proxy - Reverse Proxy - P1](RULES.md#beginner-dont-use-x-forwarded-proto-with-scheme-behind-reverse-proxy)
 
 ###### A warning about the `X-Forwarded-For`
 
-  > **:bookmark: [Set properly values of the X-Forwarded-For header - Reverse Proxy - P1](#beginner-set-properly-values-of-the-x-forwarded-for-header)**
+  > **:bookmark: [Set properly values of the X-Forwarded-For header - Reverse Proxy - P1](RULES.md#beginner-set-properly-values-of-the-x-forwarded-for-header)**
 
-I think, we should just maybe stop for a second. `X-Forwarded-For` is a one of the most important header that has the security implications.
+I think we should just maybe stop for a second. `X-Forwarded-For` is a one of the most important header that has the security implications.
 
 Where a connection passes through a chain of proxy servers, `X-Forwarded-For` can give a comma-separated list of IP addresses with the first being the furthest downstream (that is, the user).
+
+The HTTP `X-Forwarded-For` accepts two directives as mentioned above and described below:
+
+- `<client>` - it is the IP address of the client
+- `<proxy>` - it is the proxies that request has to go through. If there are multiple proxies then the IP addresses of each successive proxy is listed
+
+Syntax:
+
+```
+X-Forwarded-For: <client>, <proxy1>, <proxy2>
+```
 
 `X-Forwarded-For` should not be used for any Access Control List (ACL) checks because it can be spoofed by attackers. Use the real IP address for this type of restrictions. HTTP request headers such as `X-Forwarded-For`, `True-Client-IP`, and `X-Real-IP` are not a robust foundation on which to build any security measures, such as access controls.
 
@@ -3043,30 +3377,33 @@ But that's not all. Behind a reverse proxy, the user IP we get is often the reve
 
 I recommend to read [this](https://serverfault.com/questions/314574/nginx-real-ip-header-and-x-forwarded-for-seems-wrong/414166#414166) amazing explanation by [Nick M](https://serverfault.com/users/130923/nick-m).
 
-1) Pass headers from proxy to the backend layer
+1) Pass headers from proxy to the backend layer:
 
     - [Always pass Host, X-Real-IP, and X-Forwarded headers to the backend](RULES.md#beginner-always-pass-host-x-real-ip-and-x-forwarded-headers-to-the-backend)
     - [Set properly values of the X-Forwarded-For header (from this handbook)](RULES.md#beginner-set-properly-values-of-the-x-forwarded-for-header)
 
-2) NGINX - modify the `set_real_ip_from` and `real_ip_header` directives:
+2) NGINX (backend) - modify the `set_real_ip_from` and `real_ip_header` directives:
 
     > For this, the `http_realip_module` must be installed (`--with-http_realip_module`).
 
     First of all, you should add the following lines to the configuration:
 
     ```nginx
-    # Add these to the set_real_ip.conf, there are the real IPs where your traffic is coming from (front proxy/lb):
-    set_real_ip_from    192.168.20.10; # IP address of master
-    set_real_ip_from    192.168.20.11; # IP address of slave
+    # Add these to the set_real_ip.conf, there are the real IPs where your traffic
+    # is coming from (front proxy/lb):
+    set_real_ip_from 192.168.20.10; # IP address of master
+    set_real_ip_from 192.168.20.11; # IP address of slave
 
     # You can also add an entire subnet:
-    set_real_ip_from    192.168.40.0/24;
+    set_real_ip_from 192.168.40.0/24;
 
-    # Defines a request header field used to send the address for a replacement, in this case We use X-Forwarded-For:
-    real_ip_header      X-Forwarded-For;
+    # Defines a request header field used to send the address for a replacement,
+    # in this case we use X-Forwarded-For:
+    real_ip_header X-Forwarded-For;
 
-    # The real IP from your client address that matches one of the trusted addresses is replaced by the last non-trusted address sent in the request header field:
-    real_ip_recursive   on;
+    # The real IP from your client address that matches one of the trusted addresses
+    # is replaced by the last non-trusted address sent in the request header field:
+    real_ip_recursive on;
 
     # Include it to the appropriate context:
     server {
@@ -3121,7 +3458,54 @@ I recommend to read [this](https://serverfault.com/questions/314574/nginx-real-i
 
 Since 2014, the IETF has approved a standard header definition for proxy, called `Forwarded`, documented [here](https://tools.ietf.org/html/rfc7239) <sup>[IETF]</sup> and [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded) that should be use instead of `X-Forwarded` headers. This is the one you should use reliably to get originating IP in case your request is handled by a proxy. Official NGINX documentation also gives you how to [Using the Forwarded header](https://www.nginx.com/resources/wiki/start/topics/examples/forwarded/).
 
-In general, the proxy headers (Forwarded or X-Forwarded-For) are the right way to get your client IP only when you are sure they come to you via a proxy. If there is no proxy header or no usable value in, you should default to the `REMOTE_ADDR` server variable.
+In general, the proxy headers (`Forwarded` or `X-Forwarded-For`) are the right way to get your client IP only when you are sure they come to you via a proxy. If there is no proxy header or no usable value in, you should default to the `REMOTE_ADDR` server variable.
+
+##### Response headers
+
+  > **:bookmark: [Set the HTTP headers with add_header and proxy_*_header directives properly - Base Rules - P1](RULES.md#beginner-set-the-http-headers-with-add_header-and-proxy__header-directives-properly)**
+
+`add_header` directive allows you to define an arbitrary response header (mostly for informational/debugging purposes) and value to be included in all response codes which are equal to:
+
+- 2xx series: 200, 201, 204, 206
+- 3xx series: 301, 302, 303, 304, 307, 308
+
+For example:
+
+```nginx
+add_header Custom-Header Value;
+```
+
+  > To change (adding or removing) existing headers you should use a [headers-more-nginx-module](https://github.com/openresty/headers-more-nginx-module) module.
+
+There is one thing you must watch out for if you use `add_header` directive (also applies to `proxy_*_header` directives). See the following explanations:
+
+- [Nginx add_header configuration pitfall](https://blog.g3rt.nl/nginx-add_header-pitfall.html)
+- [Be very careful with your add_header in Nginx! You might make your site insecure](https://www.peterbe.com/plog/be-very-careful-with-your-add_header-in-nginx)
+
+This situation is described in the official documentation:
+
+  > _There could be several `add_header` directives. These directives are inherited from the previous level if and only if there are no `add_header` directives defined on the current level._
+
+However - and this is important - as you now have defined a header in your `server` context, all the remaining headers defined in the `http` context will no longer be inherited. Means, you’ve to define them in your `server` context again (or alternatively ignore them if they’re not important for your site).
+
+At the end, summary about directives to manipulate headers:
+
+- `proxy_set_header` is to sets or remove a request header (and pass it or not to the backend)
+- `add_header` is to add header to response
+- `proxy_hide_header` is to hide a response header
+
+We also have the ability to manipulate request and response headers using the [headers-more-nginx-module](https://github.com/openresty/headers-more-nginx-module) module:
+
+- `more_set_headers` - replaces (if any) or adds (if not any) the specified output headers
+- `more_clear_headers` - clears the specified output headers
+- `more_set_input_headers` - very much like `more_set_headers` except that it operates on input headers (or request headers)
+- `more_clear_input_headers` - very much like `more_clear_headers` except that it operates on input headers (or request headers)
+
+The following figure describes the modules and directives responsible for manipulating HTTP request and response headers:
+
+<p align="center">
+  <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/reverse-proxy/headers_processing.png" alt="headers_processing">
+</p>
 
 #### Load balancing algorithms
 
@@ -3131,12 +3515,12 @@ Generally load balancing is a technique used to distribute the workload across m
 
 The configuration is very simple. NGINX includes a `ngx_http_upstream_module` to define backends (groups of servers or multiple server instances). More specifically, the `upstream` directive is responsible for this.
 
-  > `upstream` only provide a list of servers, some kind of weight, and other parameters related to the backend layer.
+  > `upstream` defines the load balancing pool, only provide a list of servers, some kind of weight, and other parameters related to the backend layer.
 
 ##### Backend parameters
 
-  > **:bookmark: [Tweak passive health checks - Load Balancing - P3](#beginner-tweak-passive-health-checks)**<br>
-  > **:bookmark: [Don't disable backends by comments, use down parameter - Load Balancing - P4](#beginner-dont-disable-backends-by-comments-use-down-parameter)**
+  > **:bookmark: [Tweak passive health checks - Load Balancing - P3](RULES.md#beginner-tweak-passive-health-checks)**<br>
+  > **:bookmark: [Don't disable backends by comments, use down parameter - Load Balancing - P4](RULES.md#beginner-dont-disable-backends-by-comments-use-down-parameter)**
 
 Before we start talking about the load balancing techniques you should know something about `server` directive. It defines the address and other parameters of a backend servers.
 
@@ -3193,9 +3577,9 @@ This method is similar to the Round Robin in a sense that the manner by which re
 ```nginx
 upstream bck_testing_01 {
 
-  server 192.168.250.220:8080   weight=3;
-  server 192.168.250.221:8080;              # default weight=1
-  server 192.168.250.222:8080;              # default weight=1
+  server 192.168.250.220:8080 weight=3;
+  server 192.168.250.221:8080;           # default weight=1
+  server 192.168.250.222:8080;           # default weight=1
 
 }
 ```
@@ -3236,9 +3620,9 @@ upstream bck_testing_01 {
 
   least_conn;
 
-  server 192.168.250.220:8080   weight=3;
-  server 192.168.250.221:8080;              # default weight=1
-  server 192.168.250.222:8080;              # default weight=1
+  server 192.168.250.220:8080 weight=3;
+  server 192.168.250.221:8080;           # default weight=1
+  server 192.168.250.222:8080;           # default weight=1
 
 }
 ```
@@ -3301,7 +3685,7 @@ It is similar to the Generic Hash method because you can also specify a unique h
 
   > Mainly this helps reducing the mess on the configuration made by a lot of `location` blocks with similar configurations.
 
-First of all create a map:
+First of all, create a map:
 
 ```nginx
 map $request_uri $bck_testing_01 {
@@ -3325,7 +3709,7 @@ server {
 
   location / {
 
-    proxy_pass    http://$bck_testing_01;
+    proxy_pass http://$bck_testing_01;
 
   }
 
@@ -3335,6 +3719,9 @@ server {
 ```
 
 #### Rate limiting
+
+  > **:bookmark: [Limit concurrent connections - Hardening - P1](RULES.md#beginner-limit-concurrent-connections)**
+  > **:bookmark: [Use limit_conn to improve limiting the download speed - Performance - P3](RULES.md#beginner-use-limit_conn-to-improve-limiting-the-download-speed)
 
 NGINX has a default module to setup rate limiting. For me, it's one of the most useful protect feature but sometimes really hard to understand.
 
@@ -3368,7 +3755,7 @@ NGINX has following variables (unique keys) that can be used in a rate limiting 
 | `$request_uri` | full original request URI (with arguments) |
 | `$query_string` | arguments in the request line |
 
-<sup><i>Please see [official doc](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) for more information about variables.</i></sup>
+<sup><i>Please see [official documentation](https://nginx.org/en/docs/http/ngx_http_core_module.html#variables) for more information about variables.</i></sup>
 
 ##### Directives, keys, and zones
 
@@ -3379,7 +3766,7 @@ NGINX also provides following keys:
 | `limit_req_zone` | stores the current number of excessive requests |
 | `limit_conn_zone` | stores the maximum allowed number of connections |
 
-and directives:
+And directives:
 
 | <b>DIRECTIVE</b> | <b>DESCRIPTION</b> |
 | :---         | :---         |
@@ -3387,6 +3774,8 @@ and directives:
 | `limit_conn` | in combination with a `limit_req_zone` sets the shared memory zone and the maximum allowed number of (simultaneous) connections to the server per a client IP |
 
 Keys are used to store the state of each IP address and how often it has accessed a limited object. This information are stored in shared memory available from all NGINX worker processes.
+
+  > You can enable the dry run mode with `limit_req_dry_run on;`. In this mode, requests processing rate is not limited, however, in the shared memory zone, the number of excessive requests is accounted as usual.
 
 Both keys also provides response status parameters indicating too many requests or connections with specific http code (default **503**).
 
@@ -3419,7 +3808,7 @@ __EOF__
 
 Rate limiting rules also have zones that lets you define a shared space in which to count the incoming requests or connections.
 
-  > All requests or connections coming into the same space will be counted in the same rate limit. This is what allows you to limit per URL, per IP, or anything else.
+  > All requests or connections coming into the same space will be counted in the same rate limit. This is what allows you to limit per URL, per IP, or anything else. In HTTP/2 and SPDY, each concurrent request is considered a separate connection.
 
 The zone has two required parts:
 
@@ -3465,7 +3854,18 @@ The range of zones is as follows:
 
   > All rate limiting rules (definitions) should be added to the NGINX `http` context.
 
+Remember also about [this](https://stackoverflow.com/questions/37438949/antiddos-protection-slowing-nginx-server/37439338#37439338) answer:
+
+  > _If your are loading a website, you are not loading only this site, but assets as well. Nginx will think of them as independent connections. You have 10r/s defined and a burst size of 5. Therefore after 10 Requests/s the next requests will be delayed for rate limiting purposes. If the burst size (5) gets exceeded the following requests will receive a 503 error._
+
 `limit_req_zone` key lets you set `rate` parameter (optional) - it defines the rate limited URL(s).
+
+See also examples (all comes from this handbook):
+
+- [Limiting the rate of requests with burst mode](HELPERS.md#limiting-the-rate-of-requests-with-burst-mode)
+- [Limiting the rate of requests with burst mode and nodelay](HELPERS.md#limiting-the-rate-of-requests-with-burst-mode-and-nodelay)
+- [Limiting the rate of requests per IP with geo and map](HELPERS.md#limiting-the-rate-of-requests-per-ip-with-geo-and-map)
+- [Limiting the number of connections](HELPERS.md#limiting-the-number-of-connections)
 
 ##### Burst and nodelay parameters
 
@@ -3480,6 +3880,20 @@ For enable queue you should use `limit_req` or `limit_conn` directives (see abov
 
 Without `nodelay` NGINX would wait (no 503 response) and handle excessive requests with some delay.
 
+#### NAXSI Web Application Firewall
+
+- [NAXSI](https://github.com/nbs-system/naxsi)
+- [NAXSI, a web application firewall for Nginx](https://www.nbs-system.com/en/blog/naxsi-web-application-firewall-for-nginx/)
+
+NAXSI is an open-source, high performance, low rules maintenance WAF for NGINX and is usually referred to as a _Positive model application Firewall_. It is an open-source WAF (Web Application Firewall), providing high performances, and low rules maintenance Web Application Firewall module.
+
+#### OWASP ModSecurity Core Rule Set (CRS)
+
+- [OWASP Core Rule Set](https://coreruleset.org/)
+- [OWASP Core Rule Set - Official documentation](https://coreruleset.org/documentation/)
+
+The OWASP ModSecurity Core Rule Set (CRS) is a set of generic attack detection rules for use with ModSecurity or compatible web application firewalls. The CRS aims to protect web applications from a wide range of attacks, including the OWASP Top Ten, with a minimum of false alerts.
+
 #### Core modules
 
 ##### ngx_http_geo_module
@@ -3491,6 +3905,8 @@ Documentation:
 This module makes available variables, whose values depend on the IP address of the client. When combined with GeoIP module allows for very elaborate rules serving content according to the geolocation context.
 
 By default, the IP address used for doing the lookup is `$remote_addr`, but it is possible to specify an another variable.
+
+  > If the value of a variable does not represent a valid IP address then the `255.255.255.255` address is used.
 
 ###### Performance
 
@@ -3547,6 +3963,14 @@ geo $geo_ranges {
 ```
 
 #### 3rd party modules
+
+  > Not all external modules can work properly with your currently NGINX version. You should read the documentation of each module before adding it to the modules list. You should also to check what version of module is compatible with your NGINX release. What's more, be careful before adding modules on production. Some of them can cause strange behaviors, increased memory and CPU usage, and also reduce the overall performance of NGINX.
+
+  > Before installing external modules please read [Event-Driven architecture](NGINX_BASICS.md#event-driven-architecture) section to understand why poor quality 3rd party modules may reduce NGINX performance.
+
+  > If you have running NGINX on your server, and if you want to add new modules, you'll need to compile them against the same version of NGINX that's currently installed (`nginx -v`) and to make new module compatible with the existing NGINX binary, you need to use the same compile flags (`nginx -V`). For more please see [How to Compile Dynamic NGINX Modules](https://gorails.com/blog/how-to-compile-dynamic-nginx-modules).
+
+  > If you use, e.g. `--with-stream=dynamic`, then all those `stream_xxx` modules must also be built as NGINX dynamic modules. Otherwise you would definitely see those linker errors.
 
 ##### ngx_set_misc
 

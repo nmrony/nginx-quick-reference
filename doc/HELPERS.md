@@ -8,7 +8,7 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [Debian or Ubuntu](#debian-or-ubuntu)
     * [FreeBSD](#freebsd)
   * [Installing from source](#installing-from-source)
-    * [Automatic installation for RHEL/Debian/BSD](#automatic-installation-for-rheldebianbsd)
+    * [Automatic installation on RHEL/Debian/BSD](#automatic-installation-on-rheldebianbsd)
     * [Nginx package](#nginx-package)
     * [Dependencies](#dependencies)
     * [Patches](#patches)
@@ -47,10 +47,13 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [Send request with http method, user-agent, follow redirects and show response headers](#send-request-with-http-method-user-agent-follow-redirects-and-show-response-headers)
     * [Send multiple requests](#send-multiple-requests)
     * [Testing SSL connection](#testing-ssl-connection)
+    * [Testing SSL connection (debug mode)](#testing-ssl-connection-debug-mode)
     * [Testing SSL connection with SNI support](#testing-ssl-connection-with-sni-support)
     * [Testing SSL connection with specific SSL version](#testing-ssl-connection-with-specific-ssl-version)
     * [Testing SSL connection with specific cipher](#testing-ssl-connection-with-specific-cipher)
+    * [Testing OCSP Stapling](#testing-ocsp-stapling)
     * [Verify 0-RTT](#verify-0-rtt)
+    * [Testing SCSV](#testing-scsv)
     * [Load testing with ApacheBench (ab)](#load-testing-with-apachebench-ab)
       * [Standard test](#standard-test)
       * [Test with Keep-Alive header](#test-with-keep-alive-header)
@@ -70,15 +73,16 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [TCP SYN flood Denial of Service attack](#tcp-syn-flood-denial-of-service-attack)
     * [HTTP Denial of Service attack](#tcp-syn-flood-denial-of-service-attack)
   * [Debugging](#debugging)
-    * [Show information about processes](#show-information-about-nginx-processes)
-    * [Check memory usage](#check-memoryusage)
+    * [Show information about processes](#show-information-about-processes)
+    * [Check memory usage](#check-memory-usage)
     * [Show open files](#show-open-files)
     * [Check segmentation fault messages](#check-segmentation-fault-messages)
     * [Dump configuration](#dump-configuration)
     * [Get the list of configure arguments](#get-the-list-of-configure-arguments)
     * [Check if the module has been compiled](#check-if-the-module-has-been-compiled)
     * [Show the most accessed IP addresses](#show-the-most-accessed-ip-addresses)
-    * [Show the most accessed IP addresses (method, code, ip, and domain)](#show-the-most-accessed-ip-addresses-method-code-ip-and-domain)
+    * [Show the most accessed IP addresses (ip and url)](#show-the-most-accessed-ip-addresses-ip-and-url)
+    * [Show the most accessed IP addresses (method, code, ip, and url)](#show-the-most-accessed-ip-addresses-method-code-ip-and-url)
     * [Show the top 5 visitors (IP addresses)](#show-the-top-5-visitors-ip-addresses)
     * [Show the most requested urls](#show-the-most-requested-urls)
     * [Show the most requested urls containing 'string'](#show-the-most-requested-urls-containing-string)
@@ -103,11 +107,13 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [Extract User Agent from the http packets](#extract-user-agent-from-the-http-packets)
     * [Capture only http GET and POST packets](#capture-only-http-get-and-post-packets)
     * [Capture requests and filter by source ip and destination port](#capture-requests-and-filter-by-source-ip-and-destination-port)
+    * [Capture HTTP requests/responses in real time, filter by GET, HEAD and save to a file](#capture-http-requests--responses-in-real-time-filter-by-get-head-and-save-to-a-file)
     * [Dump a process's memory](#dump-a-processs-memory)
     * [GNU Debugger (gdb)](#gnu-debugger-gdb)
       * [Dump configuration from a running process](#dump-configuration-from-a-running-process)
       * [Show debug log in memory](#show-debug-log-in-memory)
       * [Core dump backtrace](#core-dump-backtrace)
+    * [Debugging socket leaks](#debugging-socket-leaks)
   * [Shell aliases](#shell-aliases)
   * [Configuration snippets](#configuration-snippets)
     * [Nginx server header removal](#nginx-server-header-removal)
@@ -121,6 +127,8 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [Blocking/allowing IP addresses](#blockingallowing-ip-addresses)
     * [Blocking referrer spam](#blocking-referrer-spam)
     * [Limiting referrer spam](#limiting-referrer-spam)
+    * [Blocking User-Agent](#blocking-user-agent)
+    * [Limiting User-Agent](#limiting-user-agent)
     * [Limiting the rate of requests with burst mode](#limiting-the-rate-of-requests-with-burst-mode)
     * [Limiting the rate of requests with burst mode and nodelay](#limiting-the-rate-of-requests-with-burst-mode-and-nodelay)
     * [Limiting the rate of requests per IP with geo and map](#limiting-the-rate-of-requests-per-ip-with-geo-and-map)
@@ -142,27 +150,39 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [Create a temporary static backend with SSL support](#create-a-temporary-static-backend-with-ssl-support)
     * [Generate password file with htpasswd command](#generate-password-file-with-htpasswd-command)
     * [Generate private key without passphrase](#generate-private-key-without-passphrase)
+    * [Generate private key with passphrase](#generate-private-key-with-passphrase)
+    * [Remove passphrase from private key](#remove-passphrase-from-private-key)
+    * [Encrypt existing private key with a passphrase](#encrypt-existing-private-key-with-a-passphrase)
     * [Generate CSR](#generate-csr)
     * [Generate CSR (metadata from existing certificate)](#generate-csr-metadata-from-existing-certificate)
     * [Generate CSR with -config param](#generate-csr-with--config-param)
     * [Generate private key and CSR](#generate-private-key-and-csr)
+    * [List available EC curves](#list-available-ec-curves)
+    * [Print ECDSA private and public keys](#print-ecdsa-private-and-public-keys)
     * [Generate ECDSA private key](#generate-ecdsa-private-key)
-    * [Generate private key with CSR (ECC)](#generate-private-key-with-csr-ecc)
+    * [Generate private key and CSR (ECC)](#generate-private-key-with-csr-ecc)
     * [Generate self-signed certificate](#generate-self-signed-certificate)
     * [Generate self-signed certificate from existing private key](#generate-self-signed-certificate-from-existing-private-key)
     * [Generate self-signed certificate from existing private key and csr](#generate-self-signed-certificate-from-existing-private-key-and-csr)
-    * [Generate multidomain certificate](#generate-multidomain-certificate)
-    * [Generate wildcard certificate](#generate-wildcard-certificate)
-    * [Generate certificate with 4096 bit private key](#generate-certificate-with-4096-bit-private-key)
+    * [Generate multidomain certificate (Certbot)](#generate-multidomain-certificate-certbot)
+    * [Generate wildcard certificate (Certbot)](#generate-wildcard-certificate-certbot)
+    * [Generate certificate with 4096 bit private key (Certbot)](#generate-certificate-with-4096-bit-private-key-certbot)
     * [Generate DH public parameters](#generate-dh-public-parameters)
     * [Display DH public parameters](#display-dh-public-parameters)
+    * [Extract private key from pfx](#extract-private-key-from-pfx)
+    * [Extract private key and certs from pfx](#extract-private-key-and-certs-from-pfx)
+    * [Extract certs from p7b](#extract-certs-from-p7b)
     * [Convert DER to PEM](#convert-der-to-pem)
     * [Convert PEM to DER](#convert-pem-to-der)
+    * [Verification of the certificate's supported purposes](#verification-of-the-certificates-supported-purposes)
+    * [Check private key](#check-private-key)
     * [Verification of the private key](#verification-of-the-private-key)
+    * [Get public key from private key](#get-public-key-from-private-key)
     * [Verification of the public key](#verification-of-the-public-key)
     * [Verification of the certificate](#verification-of-the-certificate)
     * [Verification of the CSR](#verification-of-the-csr)
-    * [Check whether the private key and the certificate match](#check-whether-the-private-key-and-the-certificate-match)
+    * [Check the private key and the certificate are match](#check-the-private-key-and-the-certificate-are-match)
+    * [Check the private key and the CSR are match](#check-the-private-key-and-the-csr-are-match)
     * [TLSv1.3 and CCM ciphers](#tlsv13-and-ccm-ciphers)
 
 #### Installing from prebuilt packages
@@ -257,6 +277,8 @@ apt-get install nginx
 pkg install nginx
 ```
 
+  > If you install NGINX on FreeBSD/OpenBSD please see [Tuning FreeBSD for the highload](http://nginx.org/en/docs/freebsd_tuning.html).
+
 #### Installing from source
 
   > **:bookmark: [Always keep NGINX up-to-date - Hardening - P1](RULES.md#beginner-always-keep-nginx-up-to-date)**
@@ -303,7 +325,7 @@ Look also on this short note about the system locations. That can be useful too:
   - `/usr/local/lib` - shared libraries
   - `/usr/local/share` - manual pages, data
 
-##### Automatic installation for RHEL/Debian/BSD
+##### Automatic installation on RHEL/Debian/BSD
 
 Installing from source consists of multiple steps. If you don't want to pass through all of them manually, you can run automated script. I created it to facilitate the whole installation process.
 
@@ -376,9 +398,9 @@ If you download and compile above sources the good point is to install additiona
 | | | `ncurses` | for `ngx_installer.sh` |
 
 <sup><i>* If you don't use from sources.</i></sup><br>
-<sup><i>\*\*The package list for FreeBSD may be incomplete.</i></sup>
+<sup><i>\*\* The package list for FreeBSD may be incomplete.</i></sup>
 
-Shell one-liners example:
+Shell one-liners:
 
 ```bash
 # Ubuntu/Debian
@@ -405,12 +427,12 @@ pkg install jq git wget ncurses texinfo gettext gettext-tools
 
 ##### Patches
 
-- [nginx-remove-server-header.patch](https://gitlab.com/buik/nginx/blob/master/nginx-remove-server-header.patch) - to hide NGINX `Server` header (and more), see also rule: [Hide Nginx server signature](RULES.md#beginner-hide-nginx-server-signature)
+- [nginx-remove-server-header.patch](https://gitlab.com/buik/nginx/blob/master/nginx-remove-server-header.patch) - to hide NGINX `Server` header (and more), see also this rule: [Hide Nginx server signature](RULES.md#beginner-hide-nginx-server-signature)
 - [TLSv1.3 and CCM ciphers](#tlsv13-and-ccm-ciphers) - to enable `TLS_AES_128_CCM_SHA256` and `TLS_AES_128_CCM_8_SHA256` cipher suites
 
 ##### 3rd party modules
 
-  > Not all external modules can work properly with your currently NGINX version. You should read the documentation of each module before adding it to the modules list. You should also to check what version of module is compatible with your NGINX release.
+  > Not all external modules can work properly with your currently NGINX version. You should read the documentation of each module before adding it to the modules list. You should also to check what version of module is compatible with your NGINX release. What's more, be careful before adding modules on production. Some of them can cause strange behaviors, increased memory and CPU usage, and also reduce the overall performance of NGINX.
 
   > Before installing external modules please read [Event-Driven architecture](NGINX_BASICS.md#event-driven-architecture) section to understand why poor quality 3rd party modules may reduce NGINX performance.
 
@@ -570,7 +592,7 @@ You should also recompile libraries with `-g` compiler option and optional with 
 
 SystemTap is a scripting language and tool for dynamically instrumenting running production Linux kernel-based operating systems. It's required for `openresty-systemtap-toolkit` for OpenResty.
 
-  > It's good [all-in-one tutorial](https://gist.github.com/notsobad/b8f5ebb9b99f3a818f30) for install and configure SystemTap on CentOS 7/Ubuntu distributions. In case of problems please see this [SystemTap](https://github.com/shawfdong/hyades/wiki/SystemTap) document.
+  > It's good [all-in-one tutorial](https://gist.github.com/notsobad/b8f5ebb9b99f3a818f30) about install and configure SystemTap on CentOS 7/Ubuntu distributions. In case of problems please see this [SystemTap](https://github.com/shawfdong/hyades/wiki/SystemTap) document.
 
   > Hint: Do not specify `--with-debug` while profiling. It slows everything down
 significantly.
@@ -1151,7 +1173,7 @@ _mod_dir="${NGX_PREFIX}/modules"
 
 for _module in $(ls "${_mod_dir}/") ; do
 
-  echo -en "load_module\t\t${_mod_dir}/$_module;\n" >> "${_mod_dir}.conf"
+  echo -en "load_module ${_mod_dir}/$_module;\n" >> "${_mod_dir}.conf"
 
 done
 ```
@@ -2518,20 +2540,6 @@ tree
 
 </details>
 
-#### Analyse configuration
-
-It is an essential way for testing NGINX configuration:
-
-```bash
-nginx -t -c /etc/nginx/nginx.conf
-```
-
-An external tool for analyse NGINX configuration is `gixy`. The main goal of this tool is to prevent security misconfiguration and automate flaw detection:
-
-```bash
-gixy /etc/nginx/nginx.conf
-```
-
 #### Installation Nginx on FreeBSD 11.3
 
   > The build and installation process is very similar to [Installation Nginx on CentOS 7](#installation-nginx-on-centos-7). However, I will only specify the most important changes. On FreeBSD you can also build NGINX from ports.
@@ -3100,7 +3108,7 @@ _mod_dir="${NGX_PREFIX}/modules"
 
 for _module in $(ls "${_mod_dir}/") ; do
 
-  echo -en "load_module\t\t${_mod_dir}/$_module;\n" >> "${_mod_dir}.conf"
+  echo -en "load_module ${_mod_dir}/$_module;\n" >> "${_mod_dir}.conf"
 
 done
 ```
@@ -3175,7 +3183,7 @@ nginx -t -c $NGX_CONF
 
 #### Installation Nginx on FreeBSD 12.1 (from ports)
 
-  > The installation process is different from the previous ones, in my opinion is much simpler, however, has some limitations. This method is still work in progress.
+  > The installation process is different from the previous ones, in my opinion is much simpler, however, has some limitations.
 
 For more information please see:
 
@@ -3219,6 +3227,7 @@ export NGINX_GROUP="www"
 ###### Update FreeBSD ports tree
 
 ```bash
+cd /usr/ports
 portsnap fetch
 portsnap extract
 portsnap update
@@ -3226,9 +3235,9 @@ portsnap update
 
 ###### Dependencies
 
-  > In my configuration I used all prebuilt dependencies without `openssl`, `zlib`, and `luajit` because I compiled them manually (also from ports).
-
 **Install prebuilt packages, export variables and set symbolic link:**
+
+  > Install the OpenSSL library only if the latest version is available. FreeBSD 12.1 has built-in OpenSSL 1.1.1d. If the latest available version is 1.1.1d you don't need to do anything more, go to the NGINX compilation and installation step.
 
 ```bash
 # It's important and required, regardless of chosen sources:
@@ -3277,6 +3286,18 @@ OPTIONS_FILE_SET+=TLS1_2
 
 make config-recursive
 make install
+
+# If you want to remove parameters from the options file:
+make rmconfig
+
+# If you want to recompile OpenSSL from ports:
+# - edit options file manually
+make clean
+make reinstall # make deinstall install
+# - remove options file (see above command)
+make config
+make clean
+make reinstall # make deinstall install
 
 # To use/link openssl* port from your system (world):
 if [[ ! $(grep -q "DEFAULT_VERSIONS+=ssl=openssl111" /etc/make.conf) ]] ; then
@@ -3417,6 +3438,12 @@ Go to the main NGINX port directory:
 cd /usr/ports/www/nginx
 ```
 
+Before these tasks create backup of your current NGINX config:
+
+```bash
+tar czvfp /usr/backup/nginx.tgz /usr/local/etc/nginx
+```
+
 Parameters:
 
 ```bash
@@ -3533,7 +3560,7 @@ OPTIONS_FILE_UNSET+=XSS
 OPTIONS_FILE_UNSET+=WEBSOCKIFY
 ```
 
-The simplest way:
+The simplest way to install:
 
 ```bash
 make install
@@ -3548,6 +3575,36 @@ make install
 make clean
 ```
 
+But if you want to run other tasks:
+
+- remove parameters from the options file:
+
+  ```bash
+  make rmconfig
+  ```
+
+- recompile NGINX from ports:
+
+  ```bash
+  # The following task are not necessery:
+  # - edit options file manually
+  # - regenerate options file with wizard:
+  make config
+  # - remove options file:
+  make rmconfig
+  # after this you might to run pre-install configuration:
+  make config-recursive
+
+  make clean
+  make reinstall # make deinstall install
+  ```
+
+- to disable vulnerabilities (not recommend!):
+
+  ```bash
+  make DISABLE_VULNERABILITIES=yes reinstall
+  ```
+
 ###### Post installation tasks
 
 Include the necessary error pages:
@@ -3558,6 +3615,21 @@ Include the necessary error pages:
   ```
   50x.html  index.html
   ```
+
+Update modules list and include `modules.conf` to your configuration:
+
+```bash
+NGX_PREFIX="/usr/local/etc/nginx"
+_mod_dir="/usr/local/libexec/nginx"
+
+:>"${NGX_PREFIX}/modules.conf"
+
+for _module in $(ls "${_mod_dir}/") ; do
+
+  echo -en "load_module ${_mod_dir}/$_module;\n" >> "${NGX_PREFIX}/modules.conf"
+
+done
+```
 
 Create `logrotate` configuration:
 
@@ -3626,6 +3698,20 @@ nginx -t -c $NGX_CONF
 ```
 
 </details>
+
+#### Analyse configuration
+
+It is an essential way for testing NGINX configuration:
+
+```bash
+nginx -t -c /etc/nginx/nginx.conf
+```
+
+An external tool for analyse NGINX configuration is `gixy`. The main goal of this tool is to prevent security misconfiguration and automate flaw detection:
+
+```bash
+gixy /etc/nginx/nginx.conf
+```
 
 #### Monitoring
 
@@ -3846,6 +3932,12 @@ echo | openssl s_client -connect <server_name>:<port>
 gnutls-cli --disable-sni -p 443 <server_name>
 ```
 
+###### Testing SSL connection (debug mode)
+
+```bash
+echo | openssl s_client -connect <server_name>:<port> -showcerts -tlsextdebug -status
+```
+
 ###### Testing SSL connection with SNI support
 
 ```bash
@@ -3868,6 +3960,13 @@ openssl s_client -tls1_2 -connect <server_name>:<port>
 openssl s_client -cipher 'AES128-SHA' -connect <server_name>:<port>
 ```
 
+###### Testing OCSP Stapling
+
+```bash
+openssl s_client -connect example.com:443 -servername example.com -tls1 -tlsextdebug -status
+echo | openssl s_client -connect example.com:443 -servername example.com  -status 2> /dev/null | grep -A 17 'OCSP response:'
+```
+
 ###### Verify 0-RTT
 
 ```bash
@@ -3881,6 +3980,14 @@ __EOF__
 
 openssl s_client -connect ${_host}:443 -tls1_3 -sess_out session.pem -ign_eof < req.in
 openssl s_client -connect ${_host}:443 -tls1_3 -sess_in session.pem -early_data req.in
+```
+
+###### Testing SCSV
+
+```bash
+_host="example.com"
+
+openssl s_client -connect ${_host}:443 -tlsextdebug -status -fallback_scsv -no_tls1_3
 ```
 
 ##### Load testing with ApacheBench (ab)
@@ -5013,7 +5120,7 @@ git clone https://github.com/jseidl/GoldenEye && cd GoldenEye
 
 ##### Show information about processes
 
-with `ps`:
+With `ps`:
 
 ```bash
 # For all processes (master + workers):
@@ -5036,7 +5143,7 @@ ps aux | grep "[n]ginx: worker"
 ps -eo pid,comm,euser,supgrp | grep nginx
 ```
 
-with `top`:
+With `top`:
 
 ```bash
 # For all processes (master + workers):
@@ -5057,7 +5164,7 @@ top -p $(ps axw -o pid,command | awk '($2 " " $3 ~ "nginx: worker") { print $1}'
 
 ##### Check memory usage
 
-with `ps_mem`:
+With `ps_mem`:
 
 ```bash
 # For all processes (master + workers):
@@ -5077,7 +5184,7 @@ ps_mem -s -p $(pgrep -f "nginx: worker" | sed '$!s/$/,/' | tr -d '\n')
 ps_mem -s -p $(ps axw -o pid,command | awk '($2 " " $3 ~ "nginx: worker") { print $1}' | sed '$!s/$/,/' | tr -d '\n')
 ```
 
-with `pmap`:
+With `pmap`:
 
 ```bash
 # For all processes (master + workers):
@@ -5144,18 +5251,30 @@ nginx -V 2>&1 | grep -- 'http_geoip_module'
 
 ```bash
 # - add `head -n X` to the end to limit the result
+# - add `grep "string"` to the end to filter by specific string
 # - add this to the end for print header:
 #   ... | xargs printf '%10s%20s\n%10s%20s\n' "AMOUNT" "IP_ADDRESS"
 _fd="access.log"
 awk '{print $1}' "$_fd" | sort | uniq -c | sort -nr
 ```
 
-##### Show the most accessed IP addresses (method, code, ip, and domain)
+##### Show the most accessed IP addresses (ip and url)
 
 ```bash
 # - add `head -n X` to the end to limit the result
+# - add `grep "string"` to the end to filter by specific string
 # - add this to the end for print header:
-#   ... | xargs printf '%10s%10s%10s%20s\t%s\n%10s%10s%10s%20s\t%s\n' "AMOUNT" "METHOD" "CODE" "IP" "DOMAIN"
+#   ... | xargs printf '%10s%20s\t%s\n%10s%20s\t%s\n' "AMOUNT" "IP" "URL"
+awk '{print $1 " " $7}' "$_fd" | sort | uniq -c | sort -nr
+```
+
+##### Show the most accessed IP addresses (method, code, ip, and url)
+
+```bash
+# - add `head -n X` to the end to limit the result
+# - add `grep "string"` to the end to filter by specific string
+# - add this to the end for print header:
+#   ... | xargs printf '%10s%10s%10s%20s\t%s\n%10s%10s%10s%20s\t%s\n' "AMOUNT" "METHOD" "CODE" "IP" "URL"
 _fd="access.log"
 awk '{print $6 "\" " $9 " " $1 " " $7}' "$_fd" | sort | uniq -c | sort -nr
 ```
@@ -5418,9 +5537,30 @@ tcpdump -ei eth0 -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
 ngrep -d eth0 "<server_name>" src host 10.10.252.1 and dst port 80
 ```
 
+##### Capture HTTP requests/responses in real time, filter by GET, HEAD and save to a file
+
+```bash
+httpry -i eth0 -o output.dump -m get,head
+```
+
+  * `-m` - monitor only specific HTTP methods
+  * `-o` - output txt file, `-b` - output binary file (raw HTTP packets)
+
+##### Check CLOSE_WAIT connections
+
+```bash
+netstat -anp | grep CLOSE_WAIT | grep -c nginx
+```
+
+See also [this](https://github.com/openresty/openresty/issues/323#issuecomment-352516797) great answer by [agentzh](https://github.com/agentzh):
+
+  > _If your NGINX worker processes' CPU usage is high when you see `CLOSE_WAIT` connections are growing, then you should sample a CPU flamegraph with `perf` or with `systemtap` (like `sample-bt`). If your NGINX worker proesses' CPU is low, then you should sample an off-CPU flamegraph to analyze (using `perf` or using a `systemtap` tool like `sample-bt-off-cpu`). In case of off-CPU blocking, use of tools like `strace` can be helpful as well._
+
 ##### Dump a process's memory
 
   > For more information about analyse core dumps please see [GNU Debugger (gdb) - Core dump backtrace](#core-dump-backtrace).
+
+  > Will make the debugger output easier to understand see [Debugging Symbols](#debugging-symbols).
 
 A core dump is a file containing a process's address space (memory) when the process terminates unexpectedly. In other words is an instantaneous picture of a failing process at the moment it attempts to do something very wrong.
 
@@ -5519,7 +5659,7 @@ gdb -p $(pgrep -f "nginx: master") -batch -x nginx.gdb
 less nginx.conf.running
 ```
 
-or other solution:
+Or other solution:
 
 ```gdb
 # Save gdb functions to a file, e.g. nginx.gdb:
@@ -5553,7 +5693,7 @@ First of all a buffer for debug logging should be enabled:
 error_log   memory:64m debug;
 ```
 
-and:
+Next:
 
 ```gdb
 # Save gdb functions to a file, e.g. nginx.gdb:
@@ -5597,6 +5737,51 @@ You can use also this recipe:
 ```bash
 gdb --core /var/dump/nginx/core.nginx.8125.x-9s-web01-prod.1561475764
 ```
+
+#### Debugging socket leaks
+
+Typically a resource leak is defined as an erroneous condition of a program when it is allocating more resources than it actually needs.
+
+Debugging socket leaks may produce the following alerts in your error log:
+
+```
+2015/12/10 01:36:39 [alert] 27263#27263: *241 open socket #71 left in connection 56
+2015/12/10 01:36:39 [alert] 27263#27263: *242 open socket #73 left in connection 61
+```
+
+  > Disable third party modules and check your error log, it can be a good solution, added the warnings may not appear after that.
+
+The official documentation say:
+
+  > _This directive is used for debugging. When internal error is detected, e.g. the leak of sockets on restart of working processes, enabling `debug_points` leads to a core file creation (abort) or to stopping of a process (stop) for further analysis using a system debugger. [...] This will result in `abort()` call once NGINX detects leak and core dump._
+
+To debug this you should activates debug points (in the main context):
+
+```nginx
+# Set 'abort' value to abort the debug point
+# and produce a core dump file whenever there is an internal error:
+debug_points abort;
+```
+
+That example comes from the official [Debugging - Debugging socket leaks](https://www.nginx.com/resources/wiki/start/topics/tutorials/debugging/#socket-leaks) tutorial:
+
+  > Something like this in `gdb` should be usefull (assuming 456 is connection number from error message from the process which dumped core: `[...] left in connection 456`):
+
+  ```gdb
+  set $c = &ngx_cycle->connections[456]
+  p $c->log->connection
+  p *$c
+  set $r = (ngx_http_request_t *) $c->data
+  p *$r
+  ```
+
+  > In particular, `p $c->log->connection` will print connection number as used in logs. It will be possible to grep debug log for relevant lines, e.g.
+
+  ```bash
+  fgrep ' *12345678 ' /var/log/nginx/error_log;
+  ```
+
+At the end, look also at these interesting explanations: [Socket leak](https://forum.nginx.org/read.php?29,239511,239511#msg-239511), [[nginx] Fixed socket leak with "return 444" in error_page (ticket #274)](https://forum.nginx.org/read.php?29,281339,281339#msg-281339) and [This is strictly a violation of the TCP specification](https://blog.cloudflare.com/this-is-strictly-a-violation-of-the-tcp-specification/).
 
 #### Shell aliases
 
@@ -5798,7 +5983,7 @@ server_name example.com;
 
 ##### Restricting access with client certificate
 
-If the client-side certificate failed to authenticate, NGINX show a _400 No required SSL certificate was sent_.
+If the client-side certificate failed to authenticate, NGINX show: `400 No required SSL certificate was sent`.
 
 ```nginx
 server {
@@ -6008,7 +6193,7 @@ For support GeoIP2 we have [ngx_http_geoip2_module](https://github.com/leev/ngx_
 
 Example 1:
 
-1. Create error page template in `/var/www/error_pages/error.html`:
+1. Create error page template in `/var/www/error_pages/errors.html`:
 
 ```html
 <!-- Based on: https://blog.adriaan.io/one-nginx-error-page-to-rule-them-all.html -->
@@ -6029,6 +6214,19 @@ Example 1:
   <!--# else -->
     <h1><!--# echo var="status" default="" --> <!--# echo var="status_text" default="Something goes wrong..." --></h1>
   <!--# endif -->
+</body>
+</html>
+```
+
+or
+
+```html
+<html>
+<head>
+<title><!--# echo var="status" default="" --> <!--# echo var="status_text" default="Something goes wrong..." --></title>
+</head>
+<body>
+<center><h1><!--# echo var="status" default="" --> <!--# echo var="status_text" default="Something goes wrong..." --></h1></center>
 </body>
 </html>
 ```
@@ -6058,7 +6256,7 @@ map $status $status_text {
   415 'Unsupported Media Type';
   416 'Range Not Satisfiable';
   417 'Expectation Failed';
-  418 'I'm a teapot';
+  418 'I\'m a teapot';
   421 'Misdirected Request';
   422 'Unprocessable Entity';
   423 'Locked';
@@ -6090,9 +6288,9 @@ server {
 
   ...
 
-  error_page 400 401 403 404 405 500 501 502 503 /error.html;
+  error_page 400 401 403 404 405 500 501 502 503 /errors.html;
 
-  location = /error.html {
+  location = /errors.html {
 
     ssi on;
     internal;
@@ -6373,6 +6571,68 @@ HTTP/1.1 200     1.00 secs:    3174 bytes ==> GET  /storage/img/header.jpg
 HTTP/1.1 200     1.04 secs:    3174 bytes ==> GET  /storage/img/header.jpg
 
 ...
+```
+
+##### Blocking User-Agent
+
+Example 1:
+
+```nginx
+# 1) File: /etc/nginx/limits.conf
+map $http_user_agent $invalid_ua {
+
+  default           0;
+  ~*scrapyproject   1;
+  ~*netcrawler      1;
+  ~*nmap            1;
+  ~*sqlmap          1;
+  ~*slowhttptest    1;
+  ~*nikto           1;
+  ~*python-requests 1;
+
+}
+
+# 2) Include this file in http context:
+include /etc/nginx/limits.conf;
+
+# 3) Turn on in a specific context (e.g. server):
+server_name example.com;
+
+  if ($invalid_ua) { return 444; }
+
+  ...
+```
+
+##### Limiting User-Agent
+
+Example 1:
+
+```nginx
+# 1) File: /etc/nginx/limits.conf
+map $http_user_agent $limit_ip_key_by_ua {
+
+  default           "";
+  ~*scrapyproject   binary_remote_addr;
+  ~*netcrawler      binary_remote_addr;
+  ~*nmap            binary_remote_addr;
+  ~*sqlmap          binary_remote_addr;
+  ~*slowhttptest    binary_remote_addr;
+  ~*nikto           binary_remote_addr;
+  ~*python-requests binary_remote_addr;
+
+}
+
+limit_req_zone $limit_ip_key_by_ua zone=req_for_remote_addr_by_ua:32k rate=10r/m;
+
+# 2) Include this file in http context:
+include /etc/nginx/limits.conf;
+
+# 3) Turn on in a specific context (e.g. server):
+server_name example.com;
+
+  limit_req zone=req_for_remote_addr_by_ua burst=2;
+
+  ...
 ```
 
 ##### Limiting the rate of requests with burst mode
@@ -6662,7 +6922,9 @@ server {
 
 None of the standard answers are safe to use if at any point you had unsecure HTTP set up and expect user content, have forms, host an API, or have configured any website, tool, application, or utility to speak to your site.
 
-The problem occurs when a `POST` request is made to your server. If the server response with a plain 30x redirect the POST content will be lost. To prevent this situation remember about the correct redirect HTTP code for `POST` request ([Redirect POST request with payload to external endpoint](#redirect-post-request-with-payload-to-external-endpoint)).
+The problem occurs when a `POST` request is made to your server. If the server response with a plain 30x redirect the `POST` content will be lost. To prevent this situation remember about the correct redirect HTTP code for `POST` request ([Redirect POST request with payload to external endpoint](#redirect-post-request-with-payload-to-external-endpoint)).
+
+It is therefore recommended to use the 301 code only as a response for `GET` or `HEAD` methods and to use the 308 Permanent Redirect for `POST` methods instead, as the method change is explicitly prohibited with this status (see [Mozilla Web Docs - 301 Moved Permanently](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301)).
 
 ```nginx
 server {
@@ -6696,7 +6958,7 @@ server {
 }
 ```
 
-  > Look also at [HTTP Strict Transport Security (from this handbook)](RULES.md#beginner-http-strict-transport-security).
+  > Look also at [Enable HTTP Strict Transport Security (from this handbook)](RULES.md#beginner-enable-http-strict-transport-security).
 
 ##### Proxy/rewrite and keep the original URL
 
@@ -6767,7 +7029,7 @@ location /some/path/ {
 
 ##### Proxy/rewrite without changing the original URL (in browser)
 
-  > Generally, this is not recommend (possible), because you're changing hostnames. Browser security is tied to it, as is webserver configuration.
+  > Generally, this is not recommend, because you're changing hostnames. Browser security is tied to it, as is webserver configuration.
 
   > You can rewrite URLs within same hostname, but changing hostnames requires redirect or using a frame. You can change hostname only if you have the same backends under control.
 
@@ -6941,7 +7203,7 @@ server {
 
 ##### Modify 301/302 response body
 
-By default, NGINX sent small document body for 301 and 302 redirects. [RFC 2616 - 10.3.2 301 Moved Permanently](https://tools.ietf.org/html/rfc2616#section-10.3.2) <sup>[IETF]</sup> and [RFC 2616 - 10.3.3 302 Found](https://tools.ietf.org/html/rfc2616#section-10.3.3) <sup>[IETF]</sup> specifies that the entity bodies should be present.
+By default, NGINX sent small document body for 301 and 302 redirects. [RFC 2616 - 301 Moved Permanently](https://tools.ietf.org/html/rfc2616#section-10.3.2) <sup>[IETF]</sup> and [RFC 2616 - 302 Found](https://tools.ietf.org/html/rfc2616#section-10.3.3) <sup>[IETF]</sup> specifies that the entity bodies should be present.
 
 Here you have an excellent explanation of the problem by [Michael Hampton](https://serverfault.com/users/126632/michael-hampton): [NGINX 301 and 302 serving small nginx document body. Any way to remove this behaviour?](https://serverfault.com/a/423685).
 
@@ -7213,6 +7475,12 @@ dpkg --force-confmiss -i /var/cache/apt/archives/nginx-common_*.deb
 
 ###### Create a temporary static backend
 
+Busybox:
+
+```bash
+busybox httpd -p $PORT -h $HOME [-c httpd.conf]
+```
+
 Python 3.x:
 
 ```bash
@@ -7268,8 +7536,39 @@ htpasswd -c htpasswd_example.com.conf <username>
 
 ```bash
 # _len: 2048, 4096
-( _fd="private.key" ; _len="4096" ; \
+( _fd="private.key" ; _len="2048" ; \
 openssl genrsa -out ${_fd} ${_len} )
+```
+
+###### Generate private key with passphrase
+
+```bash
+# _ciph: des3, aes128, aes256
+# _len: 2048, 4096
+( _ciph="aes128" ; _fd="private.key" ; _len="2048" ; \
+openssl genrsa -${_ciph} -out ${_fd} ${_len} )
+```
+
+###### Remove passphrase from private key
+
+```bash
+( _fd="private.key" ; _fd_unp="private_unp.key" ; \
+openssl rsa -in ${_fd} -out ${_fd_unp} )
+```
+
+###### Encrypt existing private key with a passphrase
+
+```bash
+# _ciph: des3, aes128, aes256
+( _ciph="aes128" ; _fd="private.key" ; _fd_pass="private_pass.key" ; \
+openssl rsa -${_ciph} -in ${_fd} -out ${_fd_pass}
+```
+
+###### Generate private key and CSR
+
+```bash
+( _fd="private.key" ; _fd_csr="request.csr" ; _len="2048" ; \
+openssl req -out ${_fd_csr} -new -newkey rsa:${_len} -nodes -keyout ${_fd} )
 ```
 
 ###### Generate CSR
@@ -7280,6 +7579,8 @@ openssl req -out ${_fd_csr} -new -key ${_fd} )
 ```
 
 ###### Generate CSR (metadata from existing certificate)
+
+  > Where `private.key` is the existing private key. As you can see you do not generate this CSR from your certificate (public key). Also you do not generate the "same" CSR, just a new one to request a new certificate.
 
 ```bash
 ( _fd="private.key" ; _fd_csr="request.csr" ; _fd_crt="cert.crt" ; \
@@ -7292,7 +7593,7 @@ openssl x509 -x509toreq -in ${_fd_crt} -out ${_fd_csr} -signkey ${_fd} )
 ( _fd="private.key" ; _fd_csr="request.csr" ; \
 openssl req -new -sha256 -key ${_fd} -out ${_fd_csr} \
 -config <(
-cat <<-EOF
+cat << __EOF__
 [req]
 default_bits        = 2048
 default_md          = sha256
@@ -7315,19 +7616,18 @@ subjectAltName = @alt_names
 DNS.1 = <fully qualified domain name>
 DNS.2 = <next domain>
 DNS.3 = <next domain>
-EOF
+__EOF__
 ))
 ```
 
 Other values in `[ dn ]`:
-
-  > Look at this great explanation: [How to create multidomain certificates using config files](https://apfelboymchen.net/gnu/notes/openssl%20multidomain%20with%20config%20files.html)
 
 ```
 countryName            = "DE"                     # C=
 stateOrProvinceName    = "Hessen"                 # ST=
 localityName           = "Keller"                 # L=
 postalCode             = "424242"                 # L/postalcode=
+postalAddress          = "Keller"                 # L/postaladdress=
 streetAddress          = "Crater 1621"            # L/street=
 organizationName       = "apfelboymschule"        # O=
 organizationalUnitName = "IT Department"          # OU=
@@ -7335,11 +7635,41 @@ commonName             = "example.com"            # CN=
 emailAddress           = "webmaster@example.com"  # CN/emailAddress=
 ```
 
-###### Generate private key and CSR
+Example of `oids` (you'll probably also have to make OpenSSL know about the new fields required for EV by adding the following under `[new_oids]`):
+
+```
+[req]
+...
+oid_section         = new_oids
+
+[ new_oids ]
+postalCode = 2.5.4.17
+streetAddress = 2.5.4.9
+```
+
+For more information please look at these great explanations:
+
+- [RFC 5280](https://tools.ietf.org/html/rfc5280)
+- [How to create multidomain certificates using config files](https://apfelboymchen.net/gnu/notes/openssl%20multidomain%20with%20config%20files.html)
+- [Generate a multi domains certificate using config files](https://gist.github.com/romainnorberg/464758a6620228b977212a3cf20c3e08)
+- [Your OpenSSL CSR command is out of date](https://expeditedsecurity.com/blog/openssl-csr-command/)
+- [OpenSSL example configuration file](https://www.tbs-certificats.com/openssl-dem-server-cert.cnf)
+
+###### List available EC curves
 
 ```bash
-( _fd="private.key" ; _fd_csr="request.csr" ; _len="4096" ; \
-openssl req -out ${_fd_csr} -new -newkey rsa:${_len} -nodes -keyout ${_fd} )
+openssl ecparam -list_curves
+```
+
+###### Print ECDSA private and public keys
+
+```bash
+( _fd="private.key" ; \
+openssl ec -in ${_fd} -noout -text )
+
+# For x25519 only extracting public key
+( _fd="private.key" ; _fd_pub="public.key" ; \
+openssl pkey -in ${_fd} -pubout -out ${_fd_pub} )
 ```
 
 ###### Generate ECDSA private key
@@ -7354,7 +7684,7 @@ openssl ecparam -out ${_fd} -name ${_curve} -genkey )
 openssl genpkey -algorithm ${_curve} -out ${_fd} )
 ```
 
-###### Generate private key with CSR (ECC)
+###### Generate private key and CSR (ECC)
 
 ```bash
 # _curve: prime256v1, secp521r1, secp384r1
@@ -7367,7 +7697,7 @@ openssl req -new -key ${_fd} -out ${_fd_csr} -sha256 )
 
 ```bash
 # _len: 2048, 4096
-( _fd="domain.key" ; _fd_out="domain.crt" ; _len="4096" ; _days="365" ; \
+( _fd="domain.key" ; _fd_out="domain.crt" ; _len="2048" ; _days="365" ; \
 openssl req -newkey rsa:${_len} -nodes \
 -keyout ${_fd} -x509 -days ${_days} -out ${_fd_out} )
 ```
@@ -7390,19 +7720,19 @@ openssl x509 -signkey ${_fd} -nodes \
 -in ${_fd_csr} -req -days ${_days} -out ${_fd_out} )
 ```
 
-###### Generate multidomain certificate
+###### Generate multidomain certificate (Certbot)
 
 ```bash
 certbot certonly -d example.com -d www.example.com
 ```
 
-###### Generate wildcard certificate
+###### Generate wildcard certificate (Certbot)
 
 ```bash
 certbot certonly --manual --preferred-challenges=dns -d example.com -d *.example.com
 ```
 
-###### Generate certificate with 4096 bit private key
+###### Generate certificate with 4096 bit private key (Certbot)
 
 ```bash
 certbot certonly -d example.com -d www.example.com --rsa-key-size 4096
@@ -7435,6 +7765,16 @@ openssl pkcs12 -in ${_fd_pfx} -nocerts -nodes -out ${_fd_key} )
 openssl pkcs12 -in ${_fd_pfx} -nodes -out ${_fd_pem} )
 ```
 
+###### Extract certs from p7b
+
+```bash
+# PKCS#7 file doesn't include private keys.
+( _fd_p7b="cert.p7b" ; _fd_pem="cert.pem" ; \
+openssl pkcs7 -inform DER -outform PEM -in ${_fd_p7b} -print_certs > ${_fd_pem})
+# or:
+openssl pkcs7 -print_certs -in -in ${_fd_p7b} -out ${_fd_pem})
+```
+
 ###### Convert DER to PEM
 
 ```bash
@@ -7449,11 +7789,32 @@ openssl x509 -in ${_fd_der} -inform der -outform pem -out ${_fd_pem} )
 openssl x509 -in ${_fd_pem} -outform der -out ${_fd_der} )
 ```
 
+###### Verification of the certificate's supported purposes
+
+```bash
+( _fd_pem="cert.pem" ; \
+openssl x509 -purpose -noout -in ${_fd_pem} )
+```
+
+###### Check private key
+
+```bash
+( _fd="private.key" ; \
+openssl rsa -check -in ${_fd} )
+```
+
 ###### Verification of the private key
 
 ```bash
 ( _fd="private.key" ; \
 openssl rsa -noout -text -in ${_fd} )
+```
+
+###### Get public key from private key
+
+```bash
+( _fd="private.key" ; _fd_pub="public.key" ; \
+openssl rsa -pubout -in ${_fd} -out ${_fd_pub} )
 ```
 
 ###### Verification of the public key
@@ -7483,11 +7844,18 @@ openssl x509 -noout -text -in ${_fd} )
 openssl req -text -noout -in ${_fd_csr} )
 ```
 
-###### Check whether the private key and the certificate match
+###### Check the private key and the certificate are match
 
 ```bash
 (openssl rsa -noout -modulus -in private.key | openssl md5 ; \
 openssl x509 -noout -modulus -in certificate.crt | openssl md5) | uniq
+```
+
+###### Check the private key and the CSR are match
+
+```bash
+(openssl rsa -noout -modulus -in private.key | openssl md5 ; \
+openssl req -noout -modulus -in request.csr | openssl md5) | uniq
 ```
 
 ###### TLSv1.3 and CCM ciphers

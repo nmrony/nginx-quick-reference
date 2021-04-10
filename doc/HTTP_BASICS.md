@@ -3,9 +3,13 @@
 Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-handbook#table-of-contents)** or **[What's next?](https://github.com/trimstray/nginx-admins-handbook#whats-next)** section.
 
 - **[≡ HTTP Basics](#http-basics)**
+  * [Introduction](#introduction)
   * [Features and architecture](#features-and-architecture)
   * [HTTP/2](#http2)
+    * [How to debug HTTP/2?](#how-to-debug-http2)
+  * [HTTP/3](#http3)
   * [URI vs URL](#uri-vs-url)
+  * [Connection vs request](#connection-vs-request)
   * [HTTP Headers](#http-headers)
     * [Header compression](#header-compression)
   * [HTTP Methods](#http-methods)
@@ -24,7 +28,11 @@ Go back to the **[Table of Contents](https://github.com/trimstray/nginx-admins-h
     * [Response header fields](#response-header-fields)
     * [Message body](#message-body-1)
   * [HTTP client](#http-client)
+    * [IP address shortcuts](#ip-address-shortcuts)
   * [Back-End web architecture](#back-end-web-architecture)
+  * [Useful video resources](#useful-video-resources)
+
+#### Introduction
 
 Simply put, HTTP stands for hypertext transfer protocol and is used for transmitting data (e.g. web pages) over the Internet.
 
@@ -37,22 +45,28 @@ Some important information about HTTP:
 
 I will not describe the HTTP protocol meticulously so you have to look at this as an introduction. I will discuss only the most important things because we have some great documents which describe this protocol in a great deal of detail:
 
-- [RFC 2616 - Hypertext Transfer Protocol - HTTP/1.1](https://tools.ietf.org/html/rfc2616) <sup>[IETF]</sup>
+- [RFC 2616 - HTTP/1.1](https://tools.ietf.org/html/rfc2616) <sup>[IETF]</sup>
+- [RFC 7230 - HTTP/1.1: Message Syntax and Routing](https://tools.ietf.org/html/rfc7230) <sup>[IETF]</sup>
 - [HTTP Made Really Easy](https://www.jmarshall.com/easy/http/)
 - [MDN web docs - An overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)
 - [LWP in Action - Chapter 2. Web Basics](http://lwp.interglacial.com/ch02_01.htm)
 - [HTTP and everything you need to know about it](https://medium.com/faun/http-and-everything-you-need-to-know-about-it-8273bc224491)
 
-We have also some interesting books:
+I also recommend to read:
+
+- [Mini HTTP guide for developers](https://charemza.name/blog/posts/abstractions/http/http-guide-for-developers/)
+- [10 Great Web Performance Blogs](https://www.aaronpeters.nl/blog/10-great-web-performance-blogs/)
+
+We have some interesting books:
 
 - [HTTP: The Definitive Guide](https://www.amazon.com/HTTP-Definitive-Guide-Guides-ebook/dp/B0043D2EKO)
-- [RESTful Web Services](https://www.crummy.com/writing/RESTful-Web-Services/)
+- [High Performance Browser Networking](https://hpbn.co/)
 
-And finally look at [this](https://github.com/bigcompany/know-your-http) amazing series of A1-sized posters about the HTTP protocol.
+Look also at the [useful video resources](#useful-video-resources) section of this chapter. And finally look at [this](https://github.com/bigcompany/know-your-http) amazing series of A1-sized posters about the HTTP protocol.
 
 #### Features and architecture
 
-The HTTP (1.0/1.1 = h1) protocol is a request/response protocol based on the client/server based architecture where web browsers, robots and search engines, etc. act like HTTP clients, and the Web server acts as a server. This is HTTP's message-based model. Every HTTP interaction includes a request and a response.
+The HTTP (1.0/1.1 = h1) protocol is a request/response protocol based on the client/server based architecture where web browsers, robots and search engines, etc. act like HTTP clients, and the Web server acts as a server. This is HTTP's message-based model. Every HTTP interaction includes a request and response.
 
 By its nature, HTTP is stateless. Stateless means that all requests are separate from each other. So each request from your browser must contain enough information on its own for the server to fulfill the request.
 
@@ -60,13 +74,17 @@ Here is a brief explanation:
 
 - most often the HTTP communication uses the TCP protocol
 
+- the default port is TCP 80, but other ports can be used
+
+- HTTP allow multiple requests and responses to be carried over a single (persistent) connection ([RFC 7230 - Persistence](https://tools.ietf.org/html/rfc7230#section-6.3) <sup>[IETF]</sup>)
+
 - HTTP protocol is stateless (all requests are separate from each other)
 
 - each transaction of the message based model of HTTP is processed separately from the others
 
 - the HTTP client, i.e., a browser initiates an HTTP request and after a request is made, the client waits for the response
 
-- the HTTP server handles and processing requests from clients (and continues to listen and to accept other requests), after that it sends a response to the client
+- the HTTP server handles and processing requests from clients (and continues to listen, and to accept other requests), after that it sends a response to the client
 
 - any type of data can be sent by HTTP as long as both the client and the server know how to handle the data content
 
@@ -86,7 +104,9 @@ The HTTP protocol allows clients and servers to communicate. Clients send reques
 
 #### HTTP/2
 
-HTTP/2 (h2) is a major revision of the HTTP network protocol, intended as a higher performance alternative to HTTP/1.1. It introduces several new features, while remaining semantically compatible.
+  > **:bookmark: [Use HTTP/2 - Performance - P1](RULES.md#beginner-use-http2)**
+
+HTTP/2 (h2) is a major revision of the HTTP network protocol, intended as a higher performance alternative to HTTP/1.1. It introduces several new features, while remaining semantically compatible. HTTP/2 enables more efficient communication between browsers and servers that support it. All recent versions of major browsers support HTTP/2, including Chrome, Edge, Firefox, Opera, and Safari.
 
 Look at the following comparison:
 
@@ -99,29 +119,39 @@ I will not describe HTTP/2 because there are brilliant studies:
 - [RFC 7540 - HTTP/2](https://tools.ietf.org/html/rfc7540) <sup>[IETF]</sup>
 - [HTTP/2 finalized - a quick overview](https://evertpot.com/http-2-finalized/)
 - [Introduction to HTTP/2](https://developers.google.com/web/fundamentals/performance/http2)
-- [HTTP/2: the difference between HTTP/1.1, benefits and how to use it](https://medium.com/@factoryhr/http-2-the-difference-between-http-1-1-benefits-and-how-to-use-it-38094fa0e95b)
 - [HTTP2 Explained](https://daniel.haxx.se/http2/)
 - [HTTP/2 in Action](https://www.manning.com/books/http2-in-action)
 - [HTTP/2 Frequently Asked Questions](https://http2.github.io/faq/)
 - [How Does HTTP/2 Work?](https://sookocheff.com/post/networking/how-does-http-2-work/)
+- [HTTP/2: the difference between HTTP/1.1, benefits and how to use it](https://medium.com/@factoryhr/http-2-the-difference-between-http-1-1-benefits-and-how-to-use-it-38094fa0e95b)
+- [HTTP2 Vs. HTTP1 – Let’s Understand The Two Protocols](https://cheapsslsecurity.com/p/http2-vs-http1/)
 - [HTTP 2 protocol – it is faster, but is it also safer?](https://research.securitum.com/http-2-protocol-it-is-faster-but-is-it-also-safer/)
 
-However, you should know a client that does not support HTTP/2 will never ask the server for an HTTP/2 communication upgrade: the communication between them will be fully HTTP/1.1. A client that supports HTTP/2 will ask the server (using HTTP/1.1) for an HTTP/2 upgrade:
+However, you should know a client that does not support HTTP/2 will never ask the server for an HTTP/2 communication upgrade: the communication between them will be fully HTTP/1.1. A client that supports HTTP/2 never makes a HTTP/2 request by default and will ask the server (using HTTP/1.1 with `Upgrade: HTTP/2.0` header) for an HTTP/2 upgrade:
 
   - if the server is HTTP/2 ready, then the server will notice the client as such: the communication between them will be switched to HTTP/2
   - if the server is not HTTP/2 ready, then the server will ignore the upgrade request answering with HTTP/1.1: the communication between them should stay plenty HTTP/1.1
 
-An HTTP/2 client never makes a HTTP/2 request by default. It always makes an HTTP/1.1 request with `Upgrade: HTTP/2.0` header.
+See also [NGINX Updates Mitigate the August 2019 HTTP/2 Vulnerabilities](https://www.nginx.com/blog/nginx-updates-mitigate-august-2019-http-2-vulnerabilities/).
 
-How to debug HTTP/2? There is great explanation about [Tools for debugging, testing and using HTTP/2](https://blog.cloudflare.com/tools-for-debugging-testing-and-using-http-2/). Look also at [Useful tools for HTTP/2 debugging](https://community.akamai.com/customers/s/article/Useful-tools-for-HTTP-2-debugging?language=en_US).
+##### How to debug HTTP/2?
+
+There is a great explanation about [Tools for debugging, testing and using HTTP/2](https://blog.cloudflare.com/tools-for-debugging-testing-and-using-http-2/). Look also at [Useful tools for HTTP/2 debugging](https://community.akamai.com/customers/s/article/Useful-tools-for-HTTP-2-debugging?language=en_US).
+
+#### HTTP/3
+
+- [A QUIC look at HTTP/3](https://lwn.net/SubscriberLink/814522/ab3bfaa8f75c60ce/)
+- [HTTP/3 explained](https://daniel.haxx.se/http3-explained/)
+- [HTTP/3: the past, the present, and the future](https://blog.cloudflare.com/http3-the-past-present-and-future/)
+- [What Is HTTP/3 – Lowdown on the Fast New UDP-Based Protocol](https://kinsta.com/blog/http3/)
 
 #### URI vs URL
 
 Uniform Resource Identifier (URI) is a string of characters used to identify a name or a resource on the Internet. A URI identifies a resource either by location, or a name, or both. A URI has two specializations known as URL and URN.
 
-I think, the best explanation is here: [The Difference Between URLs, URIs, and URNs](https://danielmiessler.com/study/url-uri/) by [Daniel Miessler](https://danielmiessler.com/about/).
+I think the best explanation is here: [The Difference Between URLs, URIs, and URNs](https://danielmiessler.com/study/url-uri/) by [Daniel Miessler](https://danielmiessler.com/about/).
 
-For me, this short and clear explanation is also interesting:
+For me, this short and clear comment is also interesting:
 
   > URIs **identify** and URLs **identify** and **locate**; however, **locators are also identifiers**, so every URL is also a URI, but there are URIs which are not URLs.
 
@@ -150,10 +180,35 @@ The graphic below explains the URL format:
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/http/url_format.png" alt="url_format">
 </p>
 
-If it is still unclear to you, I would advise you to look at the following articles:
+If it is still unclear, I would advise you to look at the following articles:
 
 - [What is the difference between a URI, a URL and a URN?](https://stackoverflow.com/questions/176264/what-is-the-difference-between-a-uri-a-url-and-a-urn/1984225)
 - [The History of the URL: Path, Fragment, Query, and Auth](https://eager.io/blog/the-history-of-the-url-path-fragment-query-auth/)
+
+#### Connection vs request
+
+Basically connections are established to make requests using it. So you can have multiple requests per connection. Not at the same time, of course, but rendering a web page is a fairly lengthy process.
+
+A connection is a TCP-based reliable pipeline between two endpoints. Each connection requires keeping track of both endpoint addresses/ports, sequence numbers, and which packets are unacknowledged or presumed missing.
+
+A request is a HTTP request for a given resource with a particular method. There may be zero or more requests per session. (Yes, web browsers can and do open connections without sending a request.)
+
+Most modern browsers open several connections at once, and download different files (images, css, js) at the same time to speed up the page load. But, like I said, each connection can handle multiple requests (downloads), too.
+
+To summarize:
+
+- HTTP connections - client and server introduce themselves; making a connection with server involves TCP handshaking and it is basically creating a socket connection with the server
+
+- HTTP requests - client ask something from server; to make a HTTP request you should be already established a connection with the server. If you established connection with a server you can make multiple request using the same connection (HTTP/1.0 by default one request per connection, HTTP/1.1 by default it is keep alive)
+
+There is also great comparison:
+
+- opening 25 connections, one after another, and downloading 1 file through each connection (slowest)
+- opening 1 connection and downloading 25 files through it (slow)
+- opening 5 connections and downloading 5 files through each connection (fast)
+- opening 25 connections and downloading 1 file through each connection (waste of resources)
+
+So if you limit the number of connections or the number of requests too much, you will slow down your page load speeds.
 
 #### HTTP Headers
 
@@ -166,8 +221,11 @@ See these articles about HTTP headers:
 - [HTTP headers](https://developer.mozilla.org/pl/docs/Web/HTTP/Headers)
 - [The HTTP Request Headers List](https://flaviocopes.com/http-request-headers/)
 - [The HTTP Response Headers List](https://flaviocopes.com/http-response-headers/)
+- [Exotic HTTP Headers](https://peteris.rocks/blog/exotic-http-headers/)
+- [Secure your web application with these HTTP headers](https://odino.org/secure-your-web-application-with-these-http-headers/)
+- [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/)
 
-HTTP headers allow the client and the server to pass additional information with the request or the response. An HTTP header consists of its case-insensitive name followed by a colon `:`, then by its value (without line breaks).
+HTTP headers allow the client and server to pass additional information with the request or the response. An HTTP header consists of its case-insensitive name followed by a colon `:`, then by its value (without line breaks).
 
 ###### Header compression
 
@@ -228,14 +286,14 @@ Example of form an HTTP request to fetch `/alerts/status` page from the web serv
 
 Additional information about requests:
 
-- route to endpoint
+- route to the endpoint
 - rewrite path/query
 - deny access (acls)
 - headers modification
 
 ##### Request line
 
-The Request-line begins with a method, followed by the Request-URI and the protocol version, and ending with CRLF (`\r\n` or in hex `0d0a`). The elements are separated by space SP characters:
+The Request-line begins with a method, followed by the Request-URI and the protocol version, and ending with CRLF (`\r\n` or `0d0a` in a hex). The elements are separated by space SP characters:
 
 ```
 Request-Line = Method SP Request-URI SP HTTP-Version CRLF
@@ -245,9 +303,7 @@ Request-Line = Method SP Request-URI SP HTTP-Version CRLF
 
 | <b>METHOD</b> | <b>DESCRIPTION</b> |
 | :---:         | :---         |
-| `GET` | is used to retreive data from a server at the specified resource |
-
-For more information look at the [HTTP/1.1 RFC](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3) for the definition of `GET`.
+| `GET` | is used to retreive data from a server at the specified resource ([RFC 2616 - GET](https://tools.ietf.org/html/rfc2616#section-9.3)) <sup>[IETF]</sup> |
 
 For example, say you have an API with a `/api/v2/users` endpoint. Making a `GET` request to that endpoint should return a list of all available users.
 
@@ -262,9 +318,9 @@ When executing a `GET` request, you ask the server for one, or a set of entities
 
 | <b>METHOD</b> | <b>DESCRIPTION</b> |
 | :---:         | :---         |
-| `POST` | is used to send data to the sever to modify and update a resource |
+| `POST` | is used to send data to the sever to modify and update a resource ([RFC 2616 - POST](https://tools.ietf.org/html/rfc2616#section-9.5)) <sup>[IETF]</sup> |
 
-Look at the [HTTP/1.1 RFC](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) for the definition of `POST`:
+Look at the definition of `POST`:
 
   > _The `POST` method is used to request that the origin server accept the entity enclosed in the request as a new subordinate of the resource identified by the Request-URI [...] The posted entity is subordinate to that URI in the same way that a file is subordinate to a directory containing it, a news article is subordinate to a newsgroup to which it is posted, or a record is subordinate to a database._
 
@@ -296,9 +352,9 @@ Host: example.com
 
 | <b>METHOD</b> | <b>DESCRIPTION</b> |
 | :---:         | :---         |
-| `PUT` | is used to send data to the sever to create or overwrite a resource |
+| `PUT` | is used to send data to the sever to create or overwrite a resource ([RFC 2616 - PUT](https://tools.ietf.org/html/rfc2616#section-9.6)) <sup>[IETF]</sup> |
 
-Look at the [HTTP/1.1 RFC](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) for the definition of `PUT`:
+Look at the definition of `PUT`:
 
   > _The `PUT` method requests that the enclosed entity be stored under the supplied Request-URI. If the Request-URI refers to an already existing resource, the enclosed entity SHOULD be considered as a modified version of the one residing on the origin server. If the Request-URI does not point to an existing resource [...] the origin server can create the resource with that URI._
 
@@ -353,9 +409,7 @@ The absoluteURI form is required when the request is being made to a proxy:
 GET http://example.com/pub/index.html HTTP/1.1
 ```
 
-  > Note that the absolute path cannot be empty; if none is present in the original URI, it MUST be given as `/` (the server root).
-
-  > The asterisk `*` is used when an HTTP request does not apply to a particular resource, but to the server itself, and is only allowed when the method used does not necessarily apply to a resource.
+  > Note that the absolute path cannot be empty; if none is present in the original URI, it MUST be given as `/` (the server root). The asterisk `*` is used when an HTTP request does not apply to a particular resource, but to the server itself, and is only allowed when the method used does not necessarily apply to a resource.
 
 ###### HTTP version
 
@@ -363,7 +417,7 @@ The last part of the request indicating the client's supported HTTP version. HTT
 
 Determining the appropriate version of the HTTP protocol is very important because it allows you to set specific HTTP method or required headers (e.g. `cache-control` for HTTP/1.1).
 
-There is a nice explanation about [How does a HTTP 1.1 server respond to a HTTP 1.0 request?](https://stackoverflow.com/questions/35850518/how-does-a-http-1-1-server-respond-to-a-http-1-0-request).
+There is a nice explanation [How does a HTTP 1.1 server respond to a HTTP 1.0 request?](https://stackoverflow.com/questions/35850518/how-does-a-http-1-1-server-respond-to-a-http-1-0-request).
 
 ##### Request header fields
 
@@ -377,7 +431,7 @@ There are three types of HTTP message headers for requests:
 
 The Request-header fields allow the client to pass additional information about the request, and about the client itself, to the server.
 
-What is an accepted maximum allowed size for HTTP headers? Read [this](https://stackoverflow.com/questions/686217/maximum-on-http-header-values) great answer. HTTP does not define any limit. However most web servers do limit size of headers they accept. Server will return `413 Entity Too Large` error if headers size exceeds that limit.
+What is an accepted maximum allowed size for HTTP headers? Read [this](https://stackoverflow.com/questions/686217/maximum-on-http-header-values) great answer. HTTP does not define any limit. However, the most web servers do limit size of headers they accept. Server will return `413 Entity Too Large` error if headers size exceeds that limit.
 
 ##### Message body
 
@@ -428,12 +482,12 @@ After receiving and interpreting a request message, a server responds with an HT
 ```
                      FIELDS OF HTTP RESPONSE       PART OF RFC 2616
 ---------------------------------------------------------------------
-  Request       = (1) : Status-line                  Section 6.1
+  Response      = (1) : Status-line                  Section 6.1
                   (2) : *(( general-header           Section 4.5
                           | response-header          Section 6.2
                           | entity-header ) CRLF)    Section 7.1
                   (3) : CRLF
-                  (4) : [ message-body ]             Section 4.3
+                  (4) : [ message-body ]             Section 7.2
 ```
 
 Example of form an HTTP response for a request to fetch the `/alerts/status` page from the web server running on `localhost:8000`:
@@ -462,11 +516,17 @@ Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
 
 ###### Status codes and reason phrase
 
+- `1xx: Informational` - Request received, continuing process
+- `2xx: Success` - The action was successfully received, understood, and accepted
+- `3xx: Redirection` - Further action must be taken in order to complete the request
+- `4xx: Client Error` - The request contains bad syntax or cannot be fulfilled
+- `5xx: Server Error` - The server failed to fulfill an apparently valid request
+
 For more information please see:
 
 - [HTTP response status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
 - [HTTP Status Codes](https://httpstatuses.com/)
-- [RFC 2616 - Hypertext Transfer Protocol -- HTTP/1.1 - Status Code Definitions](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+- [RFC 2616 - Status Code Definitions](https://tools.ietf.org/html/rfc2616#section-10)
 
 Be sure to take a look at this (it's genius work!):
 
@@ -475,6 +535,8 @@ Be sure to take a look at this (it's genius work!):
 </p>
 
 <sup><i>This diagram comes from [for-GET/http-decision-diagram](https://github.com/for-GET/http-decision-diagram) repository.</i></sup>
+
+The diagram follows the indications in [RFC7230](https://tools.ietf.org/html/rfc7230), [RFC7231](https://tools.ietf.org/html/rfc7231), [RFC7232](https://tools.ietf.org/html/rfc7232), [RFC7233](https://tools.ietf.org/html/rfc7233), [RFC7234](https://tools.ietf.org/html/rfc7234), [RFC7235](https://tools.ietf.org/html/rfc7235), and fills in the void where necessary. Under no circumstances does this diagram override the HTTP specifications.
 
 ##### Response header fields
 
@@ -498,11 +560,29 @@ HTTP client is a client that is able to send a request to and get a response fro
 
   > The clients are anything that send requests to the back-end.
 
+##### IP address shortcuts
+
+IP addresses can be shortened by dropping the zeroes:
+
+```
+http://1.0.0.1 → http://1.1
+http://127.0.0.1 → http://127.1
+http://192.168.0.1 → http://192.168.1
+
+http://0xC0A80001 or http://3232235521 → 192.168.0.1
+http://192.168.257 → 192.168.1.1
+http://192.168.516 → 192.168.2.4
+```
+
+  > This bypasses WAF filters for SSRF, open-redirect, etc where any IP as input gets blacklisted.
+
+For more information please see [How to Obscure Any URL](http://www.pc-help.org/obscure.htm) and [Magic IP Address Shortcuts](https://stuff-things.net/2014/09/25/magic-ip-address-shortcuts/).
+
 #### Back-End web architecture
 
   > I recommend to read these great repositories:
   >
-  >   - [Learn how to design large-scale systems. Prep for the system design interview. Includes Anki flashcards.](https://github.com/donnemartin/system-design-primer)<br>
+  >   - [Learn how to design large-scale systems](https://github.com/donnemartin/system-design-primer)<br>
   >   - [Web Architecture 101](https://engineering.videoblocks.com/web-architecture-101-a3224e126947)
 
 The back-end, or the "server side", is all of the technology required to process the incoming request and generate and send the response to the client. This typically includes three major parts:
@@ -510,3 +590,13 @@ The back-end, or the "server side", is all of the technology required to process
 - **server** - this is the computer that receives requests (backend/origin server)
 - **app** - this is the application running on the server that listens for requests, retrieves information from the database, and sends a response
 - **databases** - are used to organize and persist data
+
+#### Useful video resources
+
+- [HTTP Crash Course & Exploration](https://youtu.be/iYM2zFP3Zn0)
+- [CS50 2017 - Lecture 6 - HTTP](https://youtu.be/PUPDGbnpSjw)
+- [HTTP/2 101 (Chrome Dev Summit 2015)](https://youtu.be/r5oT_2ndjms)
+- [Headers for Hackers: Wrangling HTTP Like a Pro](https://youtu.be/TNlcoYLIGFk)
+- [Hacking with Andrew and Brad: an HTTP/2 client](https://youtu.be/yG-UaBJXZ80)
+- [Advanced HTTP Protocol Hacking](https://youtu.be/up8Vz5PTX3M)
+- [Hacking HTTP/2 - New Attacks on the Internet's Next Generation Foundation](https://youtu.be/kM8cc0kB21s)

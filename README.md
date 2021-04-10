@@ -108,9 +108,13 @@
 <summary><b>Other chapters</b></summary><br>
 
 - **[HTTP Basics](doc/HTTP_BASICS.md#http-basics)**<a id="toc-http-basics"></a>
+  * [Introduction](doc/HTTP_BASICS.md#introduction-1)
   * [Features and architecture](doc/HTTP_BASICS.md#features-and-architecture)
   * [HTTP/2](doc/HTTP_BASICS.md#http2)
+    * [How to debug HTTP/2?](doc/HTTP_BASICS.md#how-to-debug-http2)
+  * [HTTP/3](doc/HTTP_BASICS.md#http3)
   * [URI vs URL](doc/HTTP_BASICS.md#uri-vs-url)
+  * [Connection vs request](doc/HTTP_BASICS.md#connection-vs-request)
   * [HTTP Headers](doc/HTTP_BASICS.md#http-headers)
     * [Header compression](#header-compression)
   * [HTTP Methods](doc/HTTP_BASICS.md#http-methods)
@@ -128,24 +132,40 @@
       * [Status codes and reason phrase](doc/HTTP_BASICS.md#status-codes-and-reason-phrase)
     * [Response header fields](doc/HTTP_BASICS.md#response-header-fields)
     * [Message body](doc/HTTP_BASICS.md#message-body-1)
-    * [HTTP client](doc/HTTP_BASICS.md#http-client)
-    * [Back-End web architecture](doc/HTTP_BASICS.md#back-end-web-architecture)
+  * [HTTP client](doc/HTTP_BASICS.md#http-client)
+    * [IP address shortcuts](doc/HTTP_BASICS.md#ip-address-shortcuts)
+  * [Back-End web architecture](doc/HTTP_BASICS.md#back-end-web-architecture)
+  * [Useful video resources](doc/HTTP_BASICS.md#useful-video-resources)
 - **[SSL/TLS Basics](doc/SSL_TLS_BASICS.md#ssltls-basics)**<a id="toc-ssltls-basics"></a>
+  * [Introduction](doc/SSL_TLS_BASICS.md#introduction-2)
   * [TLS versions](doc/SSL_TLS_BASICS.md#tls-versions)
   * [TLS handshake](doc/SSL_TLS_BASICS.md#tls-handshake)
+    * [In which layer is TLS situated within the TCP/IP stack?](doc/SSL_TLS_BASICS.md#in-which-layer-is-tls-situated-within-the-tcpip-stack)
+  * [RSA and ECC keys/certificates](doc/SSL_TLS_BASICS.md#rsa-and-ecc-keyscertificates)
   * [Cipher suites](doc/SSL_TLS_BASICS.md#cipher-suites)
     * [Authenticated encryption (AEAD) cipher suites](doc/SSL_TLS_BASICS.md#authenticated-encryption-aead-cipher-suites)
+    * [Why cipher suites are important?](doc/SSL_TLS_BASICS.md#why-cipher-suites-are-important)
+    * [What does insecure, weak, secure and recommended mean?](doc/SSL_TLS_BASICS.md#what-does-insecure-weak-secure-and-recommended-mean)
+    * [NGINX and TLS 1.3 Cipher Suites](doc/SSL_TLS_BASICS.md#nginx-and-tls-13-cipher-suites)
   * [Diffie-Hellman key exchange](doc/SSL_TLS_BASICS.md#diffie-hellman-key-exchange)
+    * [What exactly is the purpose of these DH Parameters?](doc/SSL_TLS_BASICS.md#what-exactly-is-the-purpose-of-these-dh-parameters)
   * [Certificates](doc/SSL_TLS_BASICS.md#certificates)
+    * [Chain of Trust](doc/SSL_TLS_BASICS.md#chain-of-trust)
+      * [What is the main purpose of the Intermediate CA?](doc/SSL_TLS_BASICS.md#what-is-the-main-purpose-of-the-intermediate-ca)
     * [Single-domain](doc/SSL_TLS_BASICS.md#single-domain)
     * [Multi-domain](doc/SSL_TLS_BASICS.md#multi-domain)
     * [Wildcard](doc/SSL_TLS_BASICS.md#wildcard)
     * [Wildcard SSL doesn't handle root domain?](doc/SSL_TLS_BASICS.md#wildcard-ssl-doesnt-handle-root-domain)
+    * [HTTPS with self-signed certificate vs HTTP](doc/SSL_TLS_BASICS.md#https-with-self-signed-certificate-vs-http)
+  * [TLS Server Name Indication](doc/SSL_TLS_BASICS.md#tls-server-name-indication)
   * [Verify your SSL, TLS & Ciphers implementation](doc/SSL_TLS_BASICS.md#verify-your-ssl-tls--ciphers-implementation)
+  * [Useful video resources](doc/SSL_TLS_BASICS.md#useful-video-resources)
 - **[NGINX Basics](doc/NGINX_BASICS.md#nginx-basics)**<a id="toc-nginx-basics"></a>
   * [Directories and files](doc/NGINX_BASICS.md#directories-and-files)
   * [Commands](doc/NGINX_BASICS.md#commands)
   * [Processes](doc/NGINX_BASICS.md#processes)
+    * [CPU pinning](doc/NGINX_BASICS.md#cpu-pinning)
+    * [Shutdown of worker processes](doc/NGINX_BASICS.md#shutdown-of-worker-processes)
   * [Configuration syntax](doc/NGINX_BASICS.md#configuration-syntax)
     * [Comments](doc/NGINX_BASICS.md#comments)
     * [End of lines](doc/NGINX_BASICS.md#end-of-lines)
@@ -166,6 +186,7 @@
     * [Handle incoming connections](doc/NGINX_BASICS.md#handle-incoming-connections)
     * [Matching location](doc/NGINX_BASICS.md#matching-location)
     * [rewrite vs return](doc/NGINX_BASICS.md#rewrite-vs-return)
+    * [URL redirections](doc/NGINX_BASICS.md#url-redirections)
     * [try_files directive](doc/NGINX_BASICS.md#try_files-directive)
     * [if, break, and set](doc/NGINX_BASICS.md#if-break-and-set)
     * [root vs alias](doc/NGINX_BASICS.md#root-vs-alias)
@@ -175,21 +196,24 @@
     * [uri vs request_uri](doc/NGINX_BASICS.md#uri-vs-request_uri)
   * [Compression and decompression](doc/NGINX_BASICS.md#compression-and-decompression)
     * [What is the best NGINX compression gzip level?](doc/NGINX_BASICS.md#what-is-the-best-nginx-compression-gzip-level)
+  * [Hash tables](doc/NGINX_BASICS.md#hash-tables)
+    * [Server names hash table](doc/NGINX_BASICS.md#server-names-hash-table)
   * [Log files](doc/NGINX_BASICS.md#log-files)
     * [Conditional logging](doc/NGINX_BASICS.md#conditional-logging)
     * [Manually log rotation](doc/NGINX_BASICS.md#manually-log-rotation)
     * [Error log severity levels](doc/NGINX_BASICS.md#error-log-severity-levels)
     * [How to log the start time of a request?](doc/NGINX_BASICS.md#how-to-log-the-start-time-of-a-request)
     * [How to log the HTTP request body?](doc/NGINX_BASICS.md#how-to-log-the-http-request-body)
+    * [NGINX upstream variables returns 2 values](doc/NGINX_BASICS.md#nginx-upstream-variables-returns-2-values)
   * [Reverse proxy](doc/NGINX_BASICS.md#reverse-proxy)
     * [Passing requests](doc/NGINX_BASICS.md#passing-requests)
     * [Trailing slashes](doc/NGINX_BASICS.md#trailing-slashes)
-    * [Response headers](doc/NGINX_BASICS.md#response-headers)
     * [Passing headers to the backend](doc/NGINX_BASICS.md#passing-headers-to-the-backend)
       * [Importance of the Host header](doc/NGINX_BASICS.md#importance-of-the-host-header)
       * [Redirects and X-Forwarded-Proto](doc/NGINX_BASICS.md#redirects-and-x-forwarded-proto)
       * [A warning about the X-Forwarded-For](doc/NGINX_BASICS.md#a-warning-about-the-x-forwarded-for)
       * [Improve extensibility with Forwarded](doc/NGINX_BASICS.md#improve-extensibility-with-forwarded)
+    * [Response headers](doc/NGINX_BASICS.md#response-headers)
   * [Load balancing algorithms](doc/NGINX_BASICS.md#load-balancing-algorithms)
     * [Backend parameters](doc/NGINX_BASICS.md#backend-parameters)
     * [Upstream servers with SSL](doc/NGINX_BASICS.md#upstream-servers-with-ssl)
@@ -204,6 +228,8 @@
     * [Variables](doc/NGINX_BASICS.md#variables)
     * [Directives, keys, and zones](doc/NGINX_BASICS.md#directives-keys-and-zones)
     * [Burst and nodelay parameters](doc/NGINX_BASICS.md#burst-and-nodelay-parameters)
+  * [NAXSI Web Application Firewall](doc/NGINX_BASICS.md#naxsi-web-application-firewall)
+  * [OWASP ModSecurity Core Rule Set (CRS)](doc/NGINX_BASICS.md#owasp-modsecurity-core-rule-set-crs)
   * [Core modules](doc/NGINX_BASICS.md#core-modules)
     * [ngx_http_geo_module](doc/NGINX_BASICS.md#ngx_http_geo_module)
   * [3rd party modules](doc/NGINX_BASICS.md#3rd-party-modules)
@@ -215,7 +241,7 @@
     * [Debian or Ubuntu](doc/HELPERS.md#debian-or-ubuntu)
     * [FreeBSD](doc/HELPERS.md#freebsd)
   * [Installing from source](doc/HELPERS.md#installing-from-source)
-    * [Automatic installation for RHEL/Debian/BSD](doc/HELPERS.md#automatic-installation-for-rheldebianbsd)
+    * [Automatic installation on RHEL/Debian/BSD](doc/HELPERS.md#automatic-installation-on-rheldebianbsd)
     * [Nginx package](doc/HELPERS.md#nginx-package)
     * [Dependencies](doc/HELPERS.md#dependencies)
     * [Patches](doc/HELPERS.md#patches)
@@ -254,10 +280,13 @@
     * [Send request with http method, user-agent, follow redirects and show response headers](doc/HELPERS.md#send-request-with-http-method-user-agent-follow-redirects-and-show-response-headers)
     * [Send multiple requests](doc/HELPERS.md#send-multiple-requests)
     * [Testing SSL connection](doc/HELPERS.md#testing-ssl-connection)
+    * [Testing SSL connection (debug mode)](doc/HELPERS.md#testing-ssl-connection-debug-mode)
     * [Testing SSL connection with SNI support](doc/HELPERS.md#testing-ssl-connection-with-sni-support)
     * [Testing SSL connection with specific SSL version](doc/HELPERS.md#testing-ssl-connection-with-specific-ssl-version)
     * [Testing SSL connection with specific cipher](doc/HELPERS.md#testing-ssl-connection-with-specific-cipher)
+    * [Testing OCSP Stapling](doc/HELPERS.md#testing-ocsp-stapling)
     * [Verify 0-RTT](doc/HELPERS.md#verify-0-rtt)
+    * [Testing SCSV](doc/HELPERS.md#testing-scsv)
     * [Load testing with ApacheBench (ab)](doc/HELPERS.md#load-testing-with-apachebench-ab)
       * [Standard test](doc/HELPERS.md#standard-test)
       * [Test with Keep-Alive header](doc/HELPERS.md#test-with-keep-alive-header)
@@ -271,7 +300,7 @@
       * [Debug mode (with Lua)](doc/HELPERS.md#debug-mode-with-lua)
       * [Analyse data pass to and from the threads](doc/HELPERS.md#analyse-data-pass-to-and-from-the-threads)
       * [Parsing wrk result and generate report](doc/HELPERS.md#parsing-wrk-result-and-generate-report)
-    * [Load testing with locust](#load-testing-with-locust)
+    * [Load testing with locust](doc/HELPERS.md#load-testing-with-locust)
       * [Multiple paths](doc/HELPERS.md#multiple-paths)
       * [Multiple paths with different user sessions](doc/HELPERS.md#multiple-paths-with-different-user-sessions)
     * [TCP SYN flood Denial of Service attack](doc/HELPERS.md#tcp-syn-flood-denial-of-service-attack)
@@ -285,7 +314,8 @@
     * [Get the list of configure arguments](doc/HELPERS.md#get-the-list-of-configure-arguments)
     * [Check if the module has been compiled](doc/HELPERS.md#check-if-the-module-has-been-compiled)
     * [Show the most accessed IP addresses](doc/HELPERS.md#show-the-most-accessed-ip-addresses)
-    * [Show the most accessed IP addresses (method, code, ip, and domain)](doc/HELPERS.md#show-the-most-accessed-ip-addresses-method-code-ip-and-domain)
+    * [Show the most accessed IP addresses (ip and url)](doc/HELPERS.md#show-the-most-accessed-ip-addresses-ip-and-url)
+    * [Show the most accessed IP addresses (method, code, ip, and url)](doc/HELPERS.md#show-the-most-accessed-ip-addresses-method-code-ip-and-url)
     * [Show the top 5 visitors (IP addresses)](doc/HELPERS.md#show-the-top-5-visitors-ip-addresses)
     * [Show the most requested urls](doc/HELPERS.md#show-the-most-requested-urls)
     * [Show the most requested urls containing 'string'](doc/HELPERS.md#show-the-most-requested-urls-containing-string)
@@ -310,11 +340,13 @@
     * [Extract User Agent from the http packets](doc/HELPERS.md#extract-user-agent-from-the-http-packets)
     * [Capture only http GET and POST packets](doc/HELPERS.md#capture-only-http-get-and-post-packets)
     * [Capture requests and filter by source ip and destination port](doc/HELPERS.md#capture-requests-and-filter-by-source-ip-and-destination-port)
+    * [Capture HTTP requests/responses in real time, filter by GET, HEAD and save to a file](doc/HELPERS.md#capture-http-requests--responses-in-real-time-filter-by-get-head-and-save-to-a-file)
     * [Dump a process's memory](doc/HELPERS.md#dump-a-processs-memory)
     * [GNU Debugger (gdb)](doc/HELPERS.md#gnu-debugger-gdb)
       * [Dump configuration from a running process](doc/HELPERS.md#dump-configuration-from-a-running-process)
       * [Show debug log in memory](doc/HELPERS.md#show-debug-log-in-memory)
       * [Core dump backtrace](doc/HELPERS.md#core-dump-backtrace)
+    * [Debugging socket leaks](doc/HELPERS.md#debugging-socket-leaks)
   * [Shell aliases](doc/HELPERS.md#shell-aliases)
   * [Configuration snippets](doc/HELPERS.md#configuration-snippets)
     * [Nginx server header removal](doc/HELPERS.md#nginx-server-header-removal)
@@ -328,6 +360,8 @@
     * [Blocking/allowing IP addresses](doc/HELPERS.md#blockingallowing-ip-addresses)
     * [Blocking referrer spam](doc/HELPERS.md#blocking-referrer-spam)
     * [Limiting referrer spam](doc/HELPERS.md#limiting-referrer-spam)
+    * [Blocking User-Agent](doc/HELPERS.md#blocking-user-agent)
+    * [Limiting User-Agent](doc/HELPERS.md#limiting-user-agent)
     * [Limiting the rate of requests with burst mode](doc/HELPERS.md#limiting-the-rate-of-requests-with-burst-mode)
     * [Limiting the rate of requests with burst mode and nodelay](doc/HELPERS.md#limiting-the-rate-of-requests-with-burst-mode-and-nodelay)
     * [Limiting the rate of requests per IP with geo and map](doc/HELPERS.md#limiting-the-rate-of-requests-per-ip-with-geo-and-map)
@@ -349,54 +383,69 @@
     * [Create a temporary static backend with SSL support](doc/HELPERS.md#create-a-temporary-static-backend-with-ssl-support)
     * [Generate password file with htpasswd command](doc/HELPERS.md#generate-password-file-with-htpasswd-command)
     * [Generate private key without passphrase](doc/HELPERS.md#generate-private-key-without-passphrase)
+    * [Generate private key with passphrase](doc/HELPERS.md#generate-private-key-with-passphrase)
+    * [Remove passphrase from private key](doc/HELPERS.md#remove-passphrase-from-private-key)
+    * [Encrypt existing private key with a passphrase](doc/HELPERS.md#encrypt-existing-private-key-with-a-passphrase)
     * [Generate CSR](doc/HELPERS.md#generate-csr)
     * [Generate CSR (metadata from existing certificate)](doc/HELPERS.md#generate-csr-metadata-from-existing-certificate)
     * [Generate CSR with -config param](doc/HELPERS.md#generate-csr-with--config-param)
     * [Generate private key and CSR](doc/HELPERS.md#generate-private-key-and-csr)
+    * [List available EC curves](doc/HELPERS.md#list-available-ec-curves)
+    * [Print ECDSA private and public keys](doc/HELPERS.md#print-ecdsa-private-and-public-keys)
     * [Generate ECDSA private key](doc/HELPERS.md#generate-ecdsa-private-key)
-    * [Generate private key with CSR (ECC)](doc/HELPERS.md#generate-private-key-with-csr-ecc)
+    * [Generate private key and CSR (ECC)](doc/HELPERS.md#generate-private-key-and-csr-ecc)
     * [Generate self-signed certificate](doc/HELPERS.md#generate-self-signed-certificate)
     * [Generate self-signed certificate from existing private key](doc/HELPERS.md#generate-self-signed-certificate-from-existing-private-key)
     * [Generate self-signed certificate from existing private key and csr](doc/HELPERS.md#generate-self-signed-certificate-from-existing-private-key-and-csr)
-    * [Generate multidomain certificate](doc/HELPERS.md#generate-multidomain-certificate)
-    * [Generate wildcard certificate](doc/HELPERS.md#generate-wildcard-certificate)
-    * [Generate certificate with 4096 bit private key](doc/HELPERS.md#generate-certificate-with-4096-bit-private-key)
+    * [Generate multidomain certificate (Certbot)](doc/HELPERS.md#generate-multidomain-certificate-certbot)
+    * [Generate wildcard certificate (Certbot)](doc/HELPERS.md#generate-wildcard-certificate-certbot)
+    * [Generate certificate with 4096 bit private key (Certbot)](doc/HELPERS.md#generate-certificate-with-4096-bit-private-key-certbot)
     * [Generate DH public parameters](doc/HELPERS.md#generate-dh-public-parameters)
     * [Display DH public parameters](doc/HELPERS.md#display-dh-public-parameters)
+    * [Extract private key from pfx](doc/HELPERS.md#extract-private-key-from-pfx)
+    * [Extract private key and certs from pfx](doc/HELPERS.md#extract-private-key-and-certs-from-pfx)
+    * [Extract certs from p7b](doc/HELPERS.md#extract-certs-from-p7b)
     * [Convert DER to PEM](doc/HELPERS.md#convert-der-to-pem)
     * [Convert PEM to DER](doc/HELPERS.md#convert-pem-to-der)
+    * [Verification of the certificate's supported purposes](doc/HELPERS.md#verification-of-the-certificates-supported-purposes)
+    * [Check private key](doc/HELPERS.md#check-private-key)
     * [Verification of the private key](doc/HELPERS.md#verification-of-the-private-key)
+    * [Get public key from private key](doc/HELPERS.md#get-public-key-from-private-key)
     * [Verification of the public key](doc/HELPERS.md#verification-of-the-public-key)
     * [Verification of the certificate](doc/HELPERS.md#verification-of-the-certificate)
     * [Verification of the CSR](doc/HELPERS.md#verification-of-the-csr)
-    * [Check whether the private key and the certificate match](doc/HELPERS.md#check-whether-the-private-key-and-the-certificate-match)
+    * [Check the private key and the certificate are match](doc/HELPERS.md#check-the-private-key-and-the-certificate-are-match)
+    * [Check the private key and the CSR are match](doc/HELPERS.md#check-the-private-key-and-the-csr-are-match)
     [TLSv1.3 and CCM ciphers](doc/HELPERS.md#tlsv13-and-ccm-ciphers)
-- **[Base Rules (15)](doc/RULES.md#base-rules)**<a id="toc-base-rules"></a>
+- **[Base Rules (16)](doc/RULES.md#base-rules)**<a id="toc-base-rules"></a>
   * [Organising Nginx configuration](doc/RULES.md#beginner-organising-nginx-configuration)
   * [Format, prettify and indent your Nginx code](doc/RULES.md#beginner-format-prettify-and-indent-your-nginx-code)
   * [Use reload option to change configurations on the fly](doc/RULES.md#beginner-use-reload-option-to-change-configurations-on-the-fly)
-  * [Separate listen directives for 80 and 443](doc/RULES.md#beginner-separate-listen-directives-for-80-and-443)
+  * [Separate listen directives for 80 and 443 ports](doc/RULES.md#beginner-separate-listen-directives-for-80-and-443-ports)
   * [Define the listen directives with address:port pair](doc/RULES.md#beginner-define-the-listen-directives-with-addressport-pair)
   * [Prevent processing requests with undefined server names](doc/RULES.md#beginner-prevent-processing-requests-with-undefined-server-names)
-  * [Never use a hostname in a listen or upstream directive](doc/RULES.md#beginner-never-use-a-hostname-in-a-listen-or-upstream-directive)
-  * [Set the HTTP headers with add_header directive properly](doc/RULES.md#beginner-set-the-http-headers-with-add_header-directive-properly)
+  * [Never use a hostname in a listen or upstream directives](doc/RULES.md#beginner-never-use-a-hostname-in-a-listen-or-upstream-directives)
+  * [Set the HTTP headers with add_header and proxy_*_header directives properly](doc/RULES.md#beginner-set-the-http-headers-with-add_header-and-proxy__header-directives-properly)
   * [Use only one SSL config for the listen directive](doc/RULES.md#beginner-use-only-one-ssl-config-for-the-listen-directive)
   * [Use geo/map modules instead of allow/deny](doc/RULES.md#beginner-use-geomap-modules-instead-of-allowdeny)
   * [Map all the things...](doc/RULES.md#beginner-map-all-the-things)
   * [Set global root directory for unmatched locations](doc/RULES.md#beginner-set-global-root-directory-for-unmatched-locations)
   * [Use return directive for URL redirection (301, 302)](doc/RULES.md#beginner-use-return-directive-for-url-redirection-301-302)
   * [Configure log rotation policy](doc/RULES.md#beginner-configure-log-rotation-policy)
+  * [Use simple custom error pages](doc/RULES.md#beginner-use-simple-custom-error-pages)
   * [Don't duplicate index directive, use it only in the http block](doc/RULES.md#beginner-dont-duplicate-index-directive-use-it-only-in-the-http-block)
-- **[Debugging (4)](doc/RULES.md#debugging)**<a id="toc-debugging"></a>
+- **[Debugging (5)](doc/RULES.md#debugging)**<a id="toc-debugging"></a>
   * [Use custom log formats](doc/RULES.md#beginner-use-custom-log-formats)
   * [Use debug mode to track down unexpected behaviour](doc/RULES.md#beginner-use-debug-mode-to-track-down-unexpected-behaviour)
   * [Improve debugging by disable daemon, master process, and all workers except one](doc/RULES.md#beginner-improve-debugging-by-disable-daemon-master-process-and-all-workers-except-one)
   * [Use core dumps to figure out why NGINX keep crashing](doc/RULES.md#beginner-use-core-dumps-to-figure-out-why-nginx-keep-crashing)
-- **[Performance (12)](doc/RULES.md#performance)**<a id="toc-performance"></a>
+  * [Use mirror module to copy requests to another backend](doc/RULES.md#beginner-use-mirror-module-to-copy-requests-to-another-backend)
+- **[Performance (13)](doc/RULES.md#performance)**<a id="toc-performance"></a>
   * [Adjust worker processes](doc/RULES.md#beginner-adjust-worker-processes)
   * [Use HTTP/2](doc/RULES.md#beginner-use-http2)
   * [Maintaining SSL sessions](doc/RULES.md#beginner-maintaining-ssl-sessions)
-  * [Use exact names in a server_name directive where possible](doc/RULES.md#beginner-use-exact-names-in-a-server_name-directive-where-possible)
+  * [Enable OCSP Stapling](doc/RULES.md#beginner-enable-ocsp-stapling)
+  * [Use exact names in a server_name directive if possible](doc/RULES.md#beginner-use-exact-names-in-a-server_name-directive-if-possible)
   * [Avoid checks server_name with if directive](doc/RULES.md#beginner-avoid-checks-server_name-with-if-directive)
   * [Use $request_uri to avoid using regular expressions](doc/RULES.md#beginner-use-request_uri-to-avoid-using-regular-expressions)
   * [Use try_files directive to ensure a file exists](doc/RULES.md#beginner-use-try_files-directive-to-ensure-a-file-exists)
@@ -405,17 +454,19 @@
   * [Activate the cache for connections to upstream servers](doc/RULES.md#beginner-activate-the-cache-for-connections-to-upstream-servers)
   * [Make an exact location match to speed up the selection process](doc/RULES.md#beginner-make-an-exact-location-match-to-speed-up-the-selection-process)
   * [Use limit_conn to improve limiting the download speed](doc/RULES.md#beginner-use-limit_conn-to-improve-limiting-the-download-speed)
-- **[Hardening (28)](doc/RULES.md#hardening)**<a id="toc-hardening"></a>
+- **[Hardening (31)](doc/RULES.md#hardening)**<a id="toc-hardening"></a>
   * [Always keep NGINX up-to-date](doc/RULES.md#beginner-always-keep-nginx-up-to-date)
   * [Run as an unprivileged user](doc/RULES.md#beginner-run-as-an-unprivileged-user)
   * [Disable unnecessary modules](doc/RULES.md#beginner-disable-unnecessary-modules)
   * [Protect sensitive resources](doc/RULES.md#beginner-protect-sensitive-resources)
+  * [Take care about your ACL rules](doc/RULES.md#beginner-take-care-about-your-acl-rules)
   * [Hide Nginx version number](doc/RULES.md#beginner-hide-nginx-version-number)
   * [Hide Nginx server signature](doc/RULES.md#beginner-hide-nginx-server-signature)
   * [Hide upstream proxy headers](doc/RULES.md#beginner-hide-upstream-proxy-headers)
+  * [Remove support for legacy and risky HTTP request headers](doc/RULES.md#beginner-remove-support-for-legacy-and-risky-http-request-headers)
   * [Use only the latest supported OpenSSL version](doc/RULES.md#beginner-use-only-the-latest-supported-openssl-version)
   * [Force all connections over TLS](doc/RULES.md#beginner-force-all-connections-over-tls)
-  * [Use min. 2048-bit private keys](doc/RULES.md#beginner-use-min-2048-bit-private-keys)
+  * [Use min. 2048-bit for RSA and 256-bit for ECC](doc/RULES.md#beginner-use-min-2048-bit-for-rsa-and-256-bit-for-ecc)
   * [Keep only TLS 1.3 and TLS 1.2](doc/RULES.md#beginner-keep-only-tls-13-and-tls-12)
   * [Use only strong ciphers](doc/RULES.md#beginner-use-only-strong-ciphers)
   * [Use more secure ECDH Curve](doc/RULES.md#beginner-use-more-secure-ecdh-curve)
@@ -423,7 +474,7 @@
   * [Prevent Replay Attacks on Zero Round-Trip Time](doc/RULES.md#beginner-prevent-replay-attacks-on-zero-round-trip-time)
   * [Defend against the BEAST attack](doc/RULES.md#beginner-defend-against-the-beast-attack)
   * [Mitigation of CRIME/BREACH attacks](doc/RULES.md#beginner-mitigation-of-crimebreach-attacks)
-  * [HTTP Strict Transport Security](doc/RULES.md#beginner-http-strict-transport-security)
+  * [Enable HTTP Strict Transport Security](doc/RULES.md#beginner-enable-http-strict-transport-security)
   * [Reduce XSS risks (Content-Security-Policy)](doc/RULES.md#beginner-reduce-xss-risks-content-security-policy)
   * [Control the behaviour of the Referer header (Referrer-Policy)](doc/RULES.md#beginner-control-the-behaviour-of-the-referer-header-referrer-policy)
   * [Provide clickjacking protection (X-Frame-Options)](doc/RULES.md#beginner-provide-clickjacking-protection-x-frame-options)
@@ -432,9 +483,10 @@
   * [Deny the use of browser features (Feature-Policy)](doc/RULES.md#beginner-deny-the-use-of-browser-features-feature-policy)
   * [Reject unsafe HTTP methods](doc/RULES.md#beginner-reject-unsafe-http-methods)
   * [Prevent caching of sensitive data](doc/RULES.md#beginner-prevent-caching-of-sensitive-data)
+  * [Limit concurrent connections](doc/RULES.md#beginner-limit-concurrent-connections)
   * [Control Buffer Overflow attacks](doc/RULES.md#beginner-control-buffer-overflow-attacks)
   * [Mitigating Slow HTTP DoS attacks (Closing Slow Connections)](doc/RULES.md#beginner-mitigating-slow-http-dos-attacks-closing-slow-connections)
-- **[Reverse Proxy (7)](doc/RULES.md#reverse-proxy)**<a id="toc-reverse-proxy"></a>
+- **[Reverse Proxy (8)](doc/RULES.md#reverse-proxy)**<a id="toc-reverse-proxy"></a>
   * [Use pass directive compatible with backend protocol](doc/RULES.md#beginner-use-pass-directive-compatible-with-backend-protocol)
   * [Be careful with trailing slashes in proxy_pass directive](doc/RULES.md#beginner-be-careful-with-trailing-slashes-in-proxy_pass-directive)
   * [Set and pass Host header only with $host variable](doc/RULES.md#beginner-set-and-pass-host-header-only-with-host-variable)
@@ -446,9 +498,11 @@
 - **[Load Balancing (2)](doc/RULES.md#load-balancing)**<a id="toc-load-balancing"></a>
   * [Tweak passive health checks](doc/RULES.md#beginner-tweak-passive-health-checks)
   * [Don't disable backends by comments, use down parameter](doc/RULES.md#beginner-dont-disable-backends-by-comments-use-down-parameter)
-- **[Others (2)](doc/RULES.md#others)**<a id="toc-others"></a>
+- **[Others (4)](doc/RULES.md#others)**<a id="toc-others"></a>
+  * [Set the certificate chain correctly](doc/RULES.md#beginner-set-the-certificate-chain-correctly)
   * [Enable DNS CAA Policy](doc/RULES.md#beginner-enable-dns-caa-policy)
   * [Define security policies with security.txt](doc/RULES.md#beginner-define-security-policies-with-securitytxt)
+  * [Use tcpdump to diagnose and troubleshoot the HTTP issues](doc/RULES.md#beginner-use-tcpdump-to-monitor-http-traffic)
 - **[Configuration Examples](doc/EXAMPLES.md#configuration-examples)**<a id="toc-configuration-examples"></a>
   * [Reverse Proxy](doc/EXAMPLES.md#reverse-proxy)
     * [Installation](doc/EXAMPLES.md#installation)
@@ -478,7 +532,9 @@
 
   > Before you start playing with NGINX please read an official **[Beginner’s Guide](http://nginx.org/en/docs/beginners_guide.html)**. It's a great introduction for everyone.
 
-**Nginx** (_/ˌɛndʒɪnˈɛks/ EN-jin-EKS_, stylized as NGINX or nginx) is an open source HTTP and reverse proxy server, a mail proxy server, and a generic TCP/UDP proxy server. It is originally written by [Igor Sysoev](http://sysoev.ru/en/). For a long time, it has been running on many heavily loaded Russian sites including Yandex, Mail.Ru, VK, and Rambler. At this moment some high-profile companies using NGINX include Cisco, DuckDuckGo, Facebook, GitLab, Google, Twitter, Apple, Intel, and many more. In the September 2019 it was the most commonly used HTTP server (see [Netcraft survey](https://news.netcraft.com/archives/category/web-server-survey/)).
+**Nginx** (_/ˌɛndʒɪnˈɛks/ EN-jin-EKS_, stylized as NGINX or nginx) is an open source HTTP and reverse proxy server, a mail proxy server, and a generic TCP/UDP proxy server with a strong focus on high concurrency, performance and low memory usage. It is originally written by [Igor Sysoev](http://sysoev.ru/en/).
+
+For a long time, it has been running on many heavily loaded Russian sites including Yandex, Mail.Ru, VK, and Rambler. At this moment some high-profile companies using NGINX include Cisco, DuckDuckGo, Facebook, GitLab, Google, Twitter, Apple, Intel, and many more. In the September 2019 it was the most commonly used HTTP server (see [Netcraft survey](https://news.netcraft.com/archives/category/web-server-survey/)).
 
 NGINX is a fast, light-weight and powerful web server that can also be used as a:
 
@@ -487,9 +543,9 @@ NGINX is a fast, light-weight and powerful web server that can also be used as a
 - high performance caching server
 - full-fledged web platform
 
-Generally, it provides the core of complete web stacks and is designed to help build scalable web applications. When it comes to performance, NGINX can easily handle a huge amount of traffic. The other main advantage of the NGINX is that allows you to do the same thing in different ways.
+So, to be brief, it provides the core of complete web stacks and is designed to help build scalable web applications. When it comes to performance, NGINX can easily handle a huge amount of traffic. The other main advantage of the NGINX is that allows you to do the same thing in different ways.
 
-Unlike traditional servers, NGINX doesn't rely on threads to handle requests and it was written with a different architecture in mind - one which is much more suitable for nonlinear scalability in both the number of simultaneous connections and requests per second.
+Unlike traditional HTTP servers, NGINX doesn't rely on threads to handle requests and it was written with a different architecture in mind - one which is much more suitable for nonlinear scalability in both the number of simultaneous connections and requests per second.
 
 NGINX is also known as a _Apache Killer_ (mainly because of its lightness and much less RAM consumption). It is event-based, so it does not follow Apache's style of spawning new processes or threads for each web page request. Generally, it was created to solve the [C10K problem](http://www.kegel.com/c10k.html).
 
@@ -502,6 +558,7 @@ These essential documents should be the main source of knowledge for you:
 - **[Getting Started](https://www.nginx.com/resources/wiki/start/)**
 - **[NGINX Documentation](https://nginx.org/en/docs/)**
 - **[Development guide](http://nginx.org/en/docs/dev/development_guide.html)**
+- **[Security Controls](https://docs.nginx.com/nginx/admin-guide/security-controls/)**
 
 In addition, I would like to recommend three great docs focuses on the concept of the HTTP protocol:
 
@@ -509,13 +566,15 @@ In addition, I would like to recommend three great docs focuses on the concept o
 - **[Hypertext Transfer Protocol Specification](https://www.w3.org/Protocols/)**
 - **[Web technology for developers - HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)**
 
-If you love security keep your eye on this one: [Cryptology ePrint Archive](https://eprint.iacr.org/). It provides access to recent research in cryptology and explores many subjects of security (e.g. Ciphers, Algorithms, SSL/TLS protocols). I also recommend to read [Bulletproof SSL and TLS](https://www.feistyduck.com/books/bulletproof-ssl-and-tls/). Yep, it's definitely the most comprehensive book about deploying TLS for me.
+If you love security keep your eye on this one: [Cryptology ePrint Archive](https://eprint.iacr.org/). It provides access to recent research in cryptology and explores many subjects of security (e.g. Ciphers, Algorithms, SSL/TLS protocols). A great introduction that covers core concepts of cryptography is [Practical Cryptography for Developers](https://cryptobook.nakov.com/). I also recommend to read the [Bulletproof SSL and TLS](https://www.feistyduck.com/books/bulletproof-ssl-and-tls/). Yep, it's definitely the most comprehensive book about deploying TLS for me.
 
-An obligatory source of knowledge is also the [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/). You should ought treat it as an excellent security guidance. And, finally, [Burp Scanner - Issue Definitions](https://portswigger.net/kb/issues) introduces you to the web apps and security vulnerabilities. It's a great listing contains the definitions of all issues that can be detected by this tool and a really good source to start with.
+An obligatory source of knowledge is also the [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/). You should ought treat it as an excellent security guidance. [Burp Scanner - Issue Definitions](https://portswigger.net/kb/issues) introduces you to the web apps and security vulnerabilities. Finally, [The Web Security Academy](https://portswigger.net/web-security) is a free online training center for web application security with high-quality reading materials and interactive labs of varying levels of difficulty. All are really good source to start learning about web application security.
+
+And, of course, always browse official [Nginx Security Advisories](http://nginx.org/en/security_advisories.html) and CVE databases like [CVE Details](https://www.cvedetails.com/vendor/10048/Nginx.html) or [CVE - The MITRE Corporation](https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=NGINX) - to stay Up-to-Date on NGINX vulnerabilities.
 
 ## Prologue
 
-When I was studying architecture of HTTP servers I became interested in NGINX. As I was going through research, I kept notes. I found a lot of information about it but I've never found one guide that covers the most important things in a suitable form. I was a little disappointed.
+When I was studying architecture of HTTP servers I became interested in NGINX. As I was going through research, I kept notes. I found a lot of information about it, e.g. forum posts on the web about every conceivable problem was great. However, I've never found one guide that covers the most important things in a suitable form. I was a little disappointed.
 
 I was interested in everything: NGINX internals, functions, security best practices, performance optimisations, tips & tricks, hacks and rules, but for me some of the documents treated the subject lightly.
 
@@ -524,18 +583,19 @@ Of course, [NGINX Official Documentation](https://nginx.org/en/docs/) is the bes
 - [agentzh's Nginx Tutorials](https://openresty.org/download/agentzh-nginx-tutorials-en.html)
 - [Nginx Guts](http://www.nginxguts.com/)
 - [Nginx discovery journey](http://www.nginx-discovery.com/)
+- [Nginx Secure Web Server](https://calomel.org/nginx.html)
 - [Emiller’s Guide To Nginx Module Development](https://www.evanmiller.org/nginx-modules-guide.html)
 - [Emiller’s Advanced Topics In Nginx Module Development](https://www.evanmiller.org/nginx-modules-guide-advanced.html)
 
-These are definitely the best assets for us and in the first place you should seek help there. Moreover, in order to improve your knowledge please see [Books](#books) chapter. It contains top literature on NGINX.
+These are definitely the best assets for us and in the first place you should seek help there. Moreover, in order to improve your knowledge, please see [Books](#books) chapter - it contains top literature on NGINX.
 
 ## Why I created this handbook
 
-For me, however, there hasn't been a truly in-depth and reasonably simple cheatsheet which describe a variety of configurations and important cross-cutting topics for HTTP servers. I think, the configuration you provided should work without any talisman. That's why I created this repository.
+For me, however, there hasn't been a truly in-depth and reasonably simple cheatsheet which describe a variety of configurations and important cross-cutting topics for HTTP servers. Configuration of the NGINX can be tricky sometimes and you really need to get into the syntax and concepts to get an understanding tricks, loopholes, and mechanisms. The documentation isn't as pretty as other projects and should certainly include more robust examples.
 
-  > _This handbook is a set of rules and recommendations for the NGINX HTTP server. It also contains the best practices, helpers, notes, and papers. Many of them refer to external resources._
+  > This handbook is a set of rules and recommendations for the NGINX Open Source HTTP server. It also contains the best practices, notes, and helpers with countless examples. Many of them refer to external resources.
 
-There are a lot of things you can do to improve NGINX server and this guide will attempt to cover as many of them as possible.
+There are a lot of things you can do to improve in your NGINX instance and this guide will attempt to cover as many of them as possible. For the most part, it contains the most important things about NGINX for me. I think the configuration you provided should work without any talisman. That's why I created this repository.
 
 With this handbook you will explore the many features and capabilities of the NGINX. You'll find out, for example, how to testing the performance or how to resolve debugging problems. You will learn configuration guidelines, security design patterns, ways to handle common issues and how to stay out of them. I explained here a few best tips to avoid pitfalls and configuration mistakes.
 
@@ -547,37 +607,63 @@ Mostly, I apply the rules presented here on the NGINX working as a reverse proxy
 
 If you do not have the time to read hundreds of articles (just like me) this multipurpose handbook may be useful. I created it in the hope that it will be useful especially for System Administrators and Experts of Web-based applications.
 
-This handbook does not get into all aspects of NGINX. What's more, some of the things described in this guide may be rather basic because most of us do not configure NGINX every day and it is easy to forget about basic/trivial things. On the other hand that also discusses heavyweight topics for advanced users so there is something for everyone.
+This handbook does not get into all aspects of NGINX. What's more, some of the things described in this guide may be rather basic because most of us do not configure NGINX every day and it is easy to forget about basic/trivial things. On the other hand, also discusses heavyweight topics so there is something for advanced users. I tried to put external resources in many places in this handbook in order to dispel any suspicion that may exist.
 
-I did my best to make this handbook a single and consistent. It's organized in an order that makes logical sense to me. I think it can also be a good complement to official documentation. Of course, I still have a lot [to improve and to do](#contributing--support). I hope you enjoy and have fun with it.
+I did my best to make this handbook a single and consistent (but now I know that is really hard). It's organized in an order that makes logical sense to me. I think it can also be a good complement to official documentation and other great documents. Many of the topics described here can certainly be done better or different. Of course, I still have a lot [to improve and to do](#contributing--support). I hope you enjoy and have fun with it.
+
+Do not treat this handbook and notes written here as revealed knowledge. You should take a scientific approach when reading this document. If you have any doubts and disagree with me, please point out my mistakes. You should to discover cause and effect relationships by asking questions, carefully gathering and examining the evidence, and seeing if all the available information can be combined in to a logical answer.
+
+I create this handbook for one more reason. Rather than starting from scratch in, I putting together a plan for answering your questions to help you find the best way to do things and ensure that you don't repeat my mistakes from the past.
+
+So, what's most important:
+
+- ask a questions about something that you observe
+- do background research
+- do tests with an experiments
+- analyze and draw conclusions
+- communicate results (for us!)
+
+Finally, you should know I'm not a NGINX expert but I love to know how stuff works and why work the way they do. [I’m not a crypto expert... but I do know the term "elliptic curve"](https://twitter.com/ErikVoorhees/status/1004313761224757248) (I really like this quote!). Don't need to be an expert to figure out the reason just got to have used this and not this or why something works this way and not another. It feels good to understand the recommendations and nuances of a topic you’re passionate about.
 
 ## Before you start
 
 Remember about the following most important things:
 
-  > **`Do not follow guides just to get 100% of something. Think about what you actually do at your server!`**
-
   > **`Blindly deploying of the rules described here can damage your web application!`**
 
-  > **`Copy-and-paste is not the best way to learn. Think twice before adopting rules from this handbook.`**
+  > **`Do not follow guides just to get 100% of something. Think about what you actually do at your server!`**
 
-  > **`These guidelines provides (in some places) recommendations for very restrictive setup.`**
+  > **`Copy-and-paste is not the best way to learn. Think twice before adopting rules from this handbook.`**
 
   > **`There are no settings that are perfect for everyone.`**
 
   > **`Always think about what is better and more important for you: security vs usability/compatibility.`**
 
-  > **`The only correct approach is to understand your exposure, measure and tune.`**
+  > **`Security mainly refers to minimise the risk.`**
 
-  > **`Regularly test your deployments to make sure that a regression is not introduced.`**
+  > **`Change one thing may open a whole new set of problems.`**
+
+  > **`Read about how things work and what values are considered secure enough (and for what purposes).`**
+
+  > **`The only correct approach is to understand your exposure, measure and tune.`**
 
 ```diff
 + Security is important for ethical reasons. Compliance is important for legal reasons.
 + The key to workplace contentment is understanding they are unrelated to each other.
-+ Both are important, but one does not lead to the other.
++ Both are important, but one does not lead to the other (compliance != security).
+author: unknown
+
++ Security is always needed, no matter what type of website it is. It can be static HTML
++ or fully dynamic, an attacker can still inject hostile content into the page in transit
++ to attack the user.
+author: Scott Helme
+
++ Don’t enable older deprecated protocols just because Karen in Florida is still using
++ a PC that she bought back in 2001.
+author: thisinterestsmeblog
 ```
 
-I think that in the age of phishing, cyber attacks, ransomware, etc., you should keep your infrastructure as safe as possible but don't forget about it...
+I think, in the age of phishing, cyber attacks, ransomware, etc., you should take care of security of your infrastructure as hard as possible but don't ever forget about this one...
 
 <br>
 
@@ -585,11 +671,11 @@ I think that in the age of phishing, cyber attacks, ransomware, etc., you should
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/crypto_nerds.png">
 </p>
 
-Finally, I would like to quote two very important comments found on the web about compliance with the standards and regulations:
-
-  > _I personally think the whole TLS 1.0 depreciation is a mess that's very representative of why cyber security is a mess and will never improve. A huge cargo cult telling to turn it off because it's broken, ignoring that it's breaking a lot of clients, and without a single explanation of what's the problems or how to mitigate them._ - by [ user5994461](https://news.ycombinator.com/user?id=user5994461)
+Lastly, I would like to quote two very important comments found on the web about compliance with the standards and regulations, and essence of a human factor in security:
 
   > _Regulations that make sense are often not descriptive - capturing the intent and scope of a rule often requires technical expertise. More than that, it's the type of expertise most organisations do not have. And instead of improving themselves, these companies, who may form the grand majority of the industry, petition the regulators to provide a safe checklist of technical mitigations that can be implemented to remain compliant. [...] Instead of doing the right thing and meeting the planned intent, companies are instead ticking nonsensical boxes that the regulators and their auditors demand. Blindly. Mindlessly. Divorced from reality._ - by [bostik](https://news.ycombinator.com/user?id=bostik)
+
+  > _Whenever considering security, the human factor is nearly always as important or more important than just the technical aspects. Policy and procedures need to consider the human element and try to ensure that these policies and procedures are structured in such a way as to help enable staff to do the right thing, even when they may not fully understand why they need to do it._ - by [Tim X](https://security.stackexchange.com/users/13958/tim-x)
 
 ## Contributing & Support
 
@@ -598,8 +684,6 @@ Finally, I would like to quote two very important comments found on the web abou
 If you find something which doesn't make sense, or something doesn't seem right, please make a pull request and please add valid and well-reasoned explanations about your changes or comments.
 
 Before adding a pull request, please see the **[contributing guidelines](.github/CONTRIBUTING.md)**.
-
-If this project is useful and important for you, you can bring **positive energy** by giving some **good words** or **supporting this project**. Thank you!
 
 ## Code Contributors
 
@@ -717,9 +801,13 @@ Existing chapters:
     - [x] _cipherscan_
     - [x] _O-Saft_
     - [x] _Nghttp2_
+    - [x] _h2spec_
+    - [x] _http2fuzz_
     - [x] _Arjun_
     - [x] _Corsy_
     - [x] _XSStrike_
+  - _Online & Web tools_
+    - [x] _ssltools_
   - _Other stuff_
     - [x] _OWASP Cheat Sheet Series_
     - [x] _Mozilla Web Security_
@@ -736,7 +824,10 @@ Existing chapters:
 
   - [x] _Features and architecture_
   - [x] _HTTP/2_
+    - [x] _How to debug HTTP/2?_
+  - [x] _HTTP/3_
   - [x] _URI vs URL_
+  - [x] _Connection vs request_
   - [x] _HTTP Headers_
     - [x] _Header compression_
   - [x] _HTTP Methods_
@@ -755,7 +846,9 @@ Existing chapters:
     - [x] _Response header fields_
     - [x] _Message body_
   - [x] _HTTP client_
+    - [x] _IP address shortcuts_
   - [x] _Back-End web architecture_
+  - [x] _Useful video resources_
 
 </details>
 
@@ -764,21 +857,32 @@ Existing chapters:
 
   - [x] _TLS versions_
   - [x] _TLS handshake_
+    - [x] _In which layer is TLS situated within the TCP/IP stack?_
+  - [x] _RSA and ECC keys/certificates_
   - [x] _Cipher suites_
     - [x] _Authenticated encryption (AEAD) cipher suites_
+    - [x] _Why cipher suites are important?_
+    - [x] _NGINX and TLS 1.3 Cipher Suites_
   - [x] _Diffie-Hellman key exchange_
   - [x] _Certificates_
+    - [x] _Chain of Trust_
+      - [x] _What is the main purpose of the Intermediate CA?_
     - [x] _Single-domain_
     - [x] _Multi-domain_
     - [x] _Wildcard_
     - [x] _Wildcard SSL doesn't handle root domain?_
+  - [x] _TLS Server Name Indication_
   - [x] _Verify your SSL, TLS & Ciphers implementation_
+  - [x] _Useful video resources_
 
 </details>
 
 <details>
 <summary><b>NGINX Basics</b></summary><br>
 
+  - _Processes_
+    - [x] _CPU pinning_
+    - [x] _Shutdown of worker processes_
   - _Configuration syntax_
     - [x] _Comments_
     - [x] _End of lines_
@@ -808,19 +912,22 @@ Existing chapters:
     - [x] _uri vs request_uri_
   - _Compression and decompression_
     - [x] _What is the best NGINX compression gzip level?_
+  - _Hash tables_
+    - [x] _Server names hash table_
   - _Log files_
     - [x] _Conditional logging_
     - [x] _Manually log rotation_
+    - [x] _NGINX upstream variables returns 2 values_
   - _Reverse proxy_
     - [x] _Passing requests_
     - [x] _Trailing slashes_
     - [ ] _Processing headers_
-    - [x] _Response headers_
     - [x] _Passing headers_
       - [x] _Importance of the Host header_
       - [x] _Redirects and X-Forwarded-Proto_
       - [x] _A warning about the X-Forwarded-For_
       - [x] _Improve extensibility with Forwarded_
+    - [x] _Response headers_
   - _Load balancing algorithms_
     - [x] _Backend parameters_
     - [x] _Upstream servers with SSL_
@@ -836,6 +943,10 @@ Existing chapters:
     - [x] _Variables_
     - [x] _Directives, keys, and zones_
     - [x] _Burst and nodelay parameters_
+  - _NAXSI Web Application Firewall_
+  - _OWASP ModSecurity Core Rule Set (CRS)_
+  - _Other subjects_
+    - [ ] _Secure Distribution of SSL Private Keys with NGINX_
   - _Core modules_
     - [x] _ngx_http_geo_module_
   - _3rd party modules_
@@ -848,7 +959,7 @@ Existing chapters:
 <summary><b>Helpers</b></summary><br>
 
   - _Installing from source_
-    - [x] _Automatic installation for RHEL/Debian/BSD_
+    - [x] _Automatic installation on RHEL/Debian/BSD_
     - [x] _Compiler and linker_
       - [x] _Debugging Symbols_
     - [x] _SystemTap_
@@ -870,10 +981,12 @@ Existing chapters:
     - [x] _Send request with http method, user-agent, follow redirects and show response headers_
     - [x] _Send multiple requests_
     - [x] _Testing SSL connection_
+    - [x] _Testing SSL connection (debug mode)_
     - [x] _Testing SSL connection with SNI support_
     - [x] _Testing SSL connection with specific SSL version_
     - [x] _Testing SSL connection with specific cipher_
     - [x] _Verify 0-RTT_
+    - [x] _Testing SCSV_
     - _Load testing with ApacheBench (ab)_
       - [x] _Standard test_
       - [x] _Test with Keep-Alive header_
@@ -900,6 +1013,7 @@ Existing chapters:
     - [x] _Dump configuration_
     - [x] _Get the list of configure arguments_
     - [x] _Check if the module has been compiled_
+    - [x] _Show the most accessed IP addresses (ip and url)_
     - [x] _Show the most requested urls with http methods_
     - [x] _Show the most accessed response codes_
     - [x] _Calculating requests per second with IP addresses and urls_
@@ -909,12 +1023,14 @@ Existing chapters:
     - [x] _Extract User Agent from the http packets_
     - [x] _Capture only http GET and POST packets_
     - [x] _Capture requests and filter by source ip and destination port_
+    - [x] _Capture HTTP requests/responses in real time, filter by GET, HEAD and save to a file_
     - [ ] _Server Side Include (SSI) debugging_
     - [x] _Dump a process's memory_
     - _GNU Debugger (gdb)_
       - [x] _Dump configuration from a running process_
       - [x] _Show debug log in memory_
       - [x] _Core dump backtrace_
+    - [x] _Debugging socket leaks_
     - _SystemTap cheatsheet_
       - [x] _stapxx_
   - _Errors & Issues_
@@ -941,6 +1057,7 @@ Existing chapters:
     - [ ] _Redirect users with certain IP to special location_
     - [x] _Allow multiple cross-domains using the CORS headers_
     - [x] _Set correct scheme passed in X-Forwarded-Proto_
+    - [ ] _Securing URLs with the Secure Link Module_
     - [ ] _Tips and methods for high load traffic testing (cheatsheet)_
     - [ ] _Location matching examples_
     - [ ] _Passing requests to the backend_
@@ -959,27 +1076,35 @@ Existing chapters:
     - [x] _Create a temporary static backend with SSL support_
     - [x] _Generate password file with htpasswd command_
     - [x] _Generate private key without passphrase_
+    - [x] _Generate private key with passphrase_
+    - [x] _Remove passphrase from private key_
+    - [x] _Encrypt existing private key with a passphrase_
     - [x] _Generate CSR_
     - [x] _Generate CSR (metadata from existing certificate)_
     - [x] _Generate CSR with -config param_
     - [x] _Generate private key and CSR_
+    - [x] _List available EC curves_
     - [x] _Generate ECDSA private key_
-    - [x] _Generate private key with CSR (ECC)_
+    - [x] _Generate private key and CSR (ECC)_
     - [x] _Generate self-signed certificate_
     - [x] _Generate self-signed certificate from existing private key_
     - [x] _Generate self-signed certificate from existing private key and csr_
-    - [x] _Generate multidomain certificate_
-    - [x] _Generate wildcard certificate_
-    - [x] _Generate certificate with 4096 bit private key_
+    - [x] _Generate multidomain certificate (Certbot)_
+    - [x] _Generate wildcard certificate (Certbot)_
+    - [x] _Generate certificate with 4096 bit private key (Certbot)_
     - [x] _Generate DH public parameters_
     - [x] _Display DH public parameters_
+    - [x] _Extract certs from p7b_
     - [x] _Convert DER to PEM_
     - [x] _Convert PEM to DER_
+    - [x] _Verification of the certificate's supported purposes_
     - [x] _Verification of the private key_
+    - [x] _Check private key_
+    - [x] _Get public key from private key_
     - [x] _Verification of the public key_
     - [x] _Verification of the certificate_
     - [x] _Verification of the CSR_
-    - [x] _Check whether the private key and the certificate match_
+    - [x] _Check the private key and the certificate are match_
     - [x] _TLSv1.3 and CCM ciphers_
 
 </details>
@@ -988,10 +1113,11 @@ Existing chapters:
 <summary><b>Base Rules</b></summary><br>
 
   - [x] _Format, prettify and indent your Nginx code_
-  - [x] _Never use a hostname in a listen or upstream directive_
-  - [x] _Set the HTTP headers with add_header directive properly_
+  - [x] _Never use a hostname in a listen or upstream directives_
+  - [x] _Set the HTTP headers with add_header and proxy_*_header directives properly_
   - [ ] _Making a rewrite absolute (with scheme)_
   - [x] _Use return directive for URL redirection (301, 302)_
+  - [x] _Use simple custom error pages_
   - [x] _Configure log rotation policy_
   - [x] _Don't duplicate index directive, use it only in the http block_
 
@@ -1002,7 +1128,7 @@ Existing chapters:
 
   - [x] _Improve debugging by disable daemon, master process, and all workers except one_
   - [x] _Use core dumps to figure out why NGINX keep crashing_
-  - [ ] _Use mirror module to copy requests to another backend_
+  - [x] _Use mirror module to copy requests to another backend_
   - [ ] _Dynamic debugging with echo module_
   - [ ] _Dynamic debugging with SSI_
 
@@ -1011,6 +1137,7 @@ Existing chapters:
 <details>
 <summary><b>Performance</b></summary><br>
 
+  - [x] _Enable OCSP Stapling_
   - [ ] _Avoid multiple index directives_
   - [x] _Use $request_uri to avoid using regular expressions_
   - [x] _Use try_files directive to ensure a file exists_
@@ -1027,10 +1154,12 @@ Existing chapters:
 <summary><b>Hardening</b></summary><br>
 
   - [x] _Keep NGINX up-to-date_
+  - [x] _Take care about your ACL rules_
   - [x] _Use only the latest supported OpenSSL version_
+  - [x] _Remove support for legacy and risky HTTP request headers_
   - [x] _Prevent Replay Attacks on Zero Round-Trip Time_
-  - [ ] _Enable OCSP Stapling_
   - [x] _Prevent caching of sensitive data_
+  - [x] _Limit concurrent connections_
   - [ ] _Set properly files and directories permissions (also with acls) on a paths_
   - [ ] _Implement HTTPOnly and secure attributes on cookies_
 
@@ -1054,7 +1183,9 @@ Existing chapters:
 <details>
 <summary><b>Others</b></summary><br>
 
+  - [x] _Set the certificate chain correctly_
   - [x] _Define security policies with security.txt_
+  - [x] _Use tcpdump to diagnose and troubleshoot the HTTP issues_
 
 </details>
 
@@ -1066,18 +1197,18 @@ GitHub exposes an [RSS/Atom](https://github.com/trimstray/nginx-admins-handbook/
 
 ## Checklist to rule them all
 
-This checklist was the primary aim of the _nginx-admins-handbook_. It contains a set of best practices and recommendations on how to configure the NGINX properly.
+This checklist was the primary aim of the _nginx-admins-handbook_. It contains a set of best practices and recommendations on how to configure and maintain the NGINX properly.
 
-  > This checklist contains [all rules (71)](doc/RULES.md) from this handbook.
+  > This checklist contains [all rules (79)](doc/RULES.md) from this handbook.
 
 Generally, I think that each of these principles is important and should be considered. I separated them into four levels of priority to help guide your decision.
 
 | <b>PRIORITY</b> | <b>NAME</b> | <b>AMOUNT</b> | <b>DESCRIPTION</b> |
 | :---:        | :---         | :---:        | :---         |
-| ![high](static/img/priorities/high.png) | <i>critical</i> | 29 | definitely use this rule, otherwise it will introduce high risks of your NGINX security, performance, and other |
-| ![medium](static/img/priorities/medium.png) | <i>major</i> | 24 | it's also very important but not critical, and should still be addressed at the earliest possible opportunity |
+| ![high](static/img/priorities/high.png) | <i>critical</i> | 33 | definitely use this rule, otherwise it will introduce high risks of your NGINX security, performance, and other |
+| ![medium](static/img/priorities/medium.png) | <i>major</i> | 26 | it's also very important but not critical, and should still be addressed at the earliest possible opportunity |
 | ![low](static/img/priorities/low.png) | <i>normal</i> | 12 | there is no need to implement but it is worth considering because it can improve the NGINX working and functions |
-| ![info](static/img/priorities/info.png) | <i>minor</i> | 6 | as an option to implement or use (not required) |
+| ![info](static/img/priorities/info.png) | <i>minor</i> | 8 | as an option to implement or use (not required) |
 
 Remember, these are only guidelines. My point of view may be different from yours so if you feel these priority levels do not reflect your configurations commitment to security, performance or whatever else, you should adjust them as you see fit.
 
@@ -1085,22 +1216,25 @@ Remember, these are only guidelines. My point of view may be different from your
 | :---         | :---         | :---:        |
 | [Define the listen directives with address:port pair](doc/RULES.md#beginner-define-the-listen-directives-with-addressport-pair)<br><sup>Prevents soft mistakes which may be difficult to debug.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
 | [Prevent processing requests with undefined server names](doc/RULES.md#beginner-prevent-processing-requests-with-undefined-server-names)<br><sup>It protects against configuration errors, e.g. traffic forwarding to incorrect backends.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
-| [Never use a hostname in a listen or upstream directive](doc/RULES.md#beginner-never-use-a-hostname-in-a-listen-or-upstream-directive)<br><sup>While this may work, it will comes with a large number of issues.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
-| [Set the HTTP headers with add_header directive properly](doc/RULES.md#beginner-set-the-http-headers-with-add_header-directive-properly)<br><sup>Set the right security headers for all contexts.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
+| [Never use a hostname in a listen or upstream directives](doc/RULES.md#beginner-never-use-a-hostname-in-a-listen-or-upstream-directives)<br><sup>While this may work, it will comes with a large number of issues.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
+| [Set the HTTP headers with add_header and proxy_*_header directives properly](doc/RULES.md#beginner-set-the-http-headers-with-add_header-and-proxy__header-directives-properly)<br><sup>Set the right security headers for all contexts.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
 | [Configure log rotation policy](doc/RULES.md#beginner-configure-log-rotation-policy)<br><sup>Save yourself trouble with your web server: configure appropriate logging policy.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
+| [Use simple custom error pages](doc/RULES.md#beginner-use-simple-custom-error-pages)<br><sup>Default error pages reveals information which leads to information leakage vulnerability.</sup> | Base Rules | ![high](static/img/priorities/high.png) |
 | [Use HTTP/2](doc/RULES.md#beginner-use-http2)<br><sup>HTTP/2 will make our applications faster, simpler, and more robust.</sup> | Performance | ![high](static/img/priorities/high.png) |
-| [Always keep NGINX up-to-date](doc/RULES.md#always-keep-nginx-up-to-date)<br><sup>Use newest NGINX package to fix vulnerabilities, bugs, and to use new features.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Always keep NGINX up-to-date](doc/RULES.md#beginner-always-keep-nginx-up-to-date)<br><sup>Use newest NGINX package to fix vulnerabilities, bugs, and to use new features.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Run as an unprivileged user](doc/RULES.md#beginner-run-as-an-unprivileged-user)<br><sup>Use the principle of least privilege. This way only master process runs as root.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Protect sensitive resources](doc/RULES.md#beginner-protect-sensitive-resources)<br><sup>Hidden directories and files should never be web accessible.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Take care about your ACL rules](doc/RULES.md#beginner-take-care-about-your-acl-rules)<br><sup>Test your access-control lists and to stay secure.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Hide upstream proxy headers](doc/RULES.md#beginner-hide-upstream-proxy-headers)<br><sup>Don't expose what version of software is running on the server.</sup> | Hardening | ![high](static/img/priorities/high.png) |
-| [Force all connections over TLS](doc/RULES.md#beginner-force-all-connections-over-tls)<br><sup>Protects your website especially for handle sensitive communications.</sup> | Hardening | ![high](static/img/priorities/high.png) |
-| [Use min. 2048-bit private keys](doc/RULES.md#beginner-use-min-2048-bit-private-keys)<br><sup>2048 bits private keys are sufficient for commercial use.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Remove support for legacy and risky HTTP request headers](doc/RULES.md#beginner-remove-support-for-legacy-and-risky-http-request-headers)<br><sup>Supports for the offending headers should be removed.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Force all connections over TLS](doc/RULES.md#beginner-force-all-connections-over-tls)<br><sup>Protects your website for handle sensitive communications.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Use min. 2048-bit for RSA and 256-bit for ECC](doc/RULES.md#beginner-use-min-2048-bit-for-rsa-and-256-bit-for-ecc)<br><sup>2048 bit (RSA) or 256 bit (ECC) keys are sufficient for commercial use.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Keep only TLS 1.3 and TLS 1.2](doc/RULES.md#beginner-keep-only-tls-13-and-tls-12)<br><sup>Use TLS with modern cryptographic algorithms and without protocol weaknesses.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Use only strong ciphers](doc/RULES.md#beginner-use-only-strong-ciphers)<br><sup>Use only strong and not vulnerable cipher suites.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Use more secure ECDH Curve](doc/RULES.md#beginner-use-more-secure-ecdh-curve)<br><sup>Use ECDH Curves with according to NIST recommendations.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Use strong Key Exchange with Perfect Forward Secrecy](doc/RULES.md#beginner-use-strong-key-exchange-with-perfect-forward-secrecy)<br><sup>Establishes a shared secret between two parties that can be used for secret communication.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Defend against the BEAST attack](doc/RULES.md#beginner-defend-against-the-beast-attack)<br><sup>The server ciphers should be preferred over the client ciphers.</sup> | Hardening | ![high](static/img/priorities/high.png) |
-| [HTTP Strict Transport Security](doc/RULES.md#beginner-http-strict-transport-security)<br><sup>Tells browsers that it should only be accessed using HTTPS, instead of using HTTP.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Enable HTTP Strict Transport Security](doc/RULES.md#beginner-enable-http-strict-transport-security)<br><sup>Tells browsers that it should only be accessed using HTTPS, instead of using HTTP.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Reduce XSS risks (Content-Security-Policy)](doc/RULES.md#beginner-reduce-xss-risks-content-security-policy)<br><sup>CSP is best used as defence-in-depth. It reduces the harm that a malicious injection can cause.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Control the behaviour of the Referer header (Referrer-Policy)](doc/RULES.md#beginner-control-the-behaviour-of-the-referer-header-referrer-policy)<br><sup>The default behaviour of referrer leaking puts websites at risk of privacy and security breaches.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Provide clickjacking protection (X-Frame-Options)](doc/RULES.md#beginner-provide-clickjacking-protection-x-frame-options)<br><sup>Defends against clickjacking attack.</sup> | Hardening | ![high](static/img/priorities/high.png) |
@@ -1108,6 +1242,7 @@ Remember, these are only guidelines. My point of view may be different from your
 | [Prevent Sniff Mimetype middleware (X-Content-Type-Options)](doc/RULES.md#beginner-prevent-sniff-mimetype-middleware-x-content-type-options)<br><sup>Tells browsers not to sniff MIME types.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Reject unsafe HTTP methods](doc/RULES.md#beginner-reject-unsafe-http-methods)<br><sup>Only allow the HTTP methods for which you, in fact, provide services.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Prevent caching of sensitive data](doc/RULES.md#beginner-prevent-caching-of-sensitive-data)<br><sup>It helps to prevent critical data (e.g. credit card details, or username) leaked.</sup> | Hardening | ![high](static/img/priorities/high.png) |
+| [Limit concurrent connections](doc/RULES.md#beginner-limit-concurrent-connections)<br><sup>Limit concurrent connections to prevent a rogue guys from repeatedly connecting to and monopolizing NGINX.</sup> | Hardening | ![high](static/img/priorities/high.png) |
 | [Use pass directive compatible with backend protocol](doc/RULES.md#beginner-use-pass-directive-compatible-with-backend-protocol)<br><sup>Set pass directive only to working with compatible backend layer protocol.</sup> | Reverse Proxy | ![high](static/img/priorities/high.png) |
 | [Set properly values of the X-Forwarded-For header](doc/RULES.md#beginner-set-properly-values-of-the-x-forwarded-for-header)<br><sup>Identify clients communicating with servers located behind the proxy.</sup> | Reverse Proxy | ![high](static/img/priorities/high.png) |
 | [Don't use X-Forwarded-Proto with $scheme behind reverse proxy](doc/RULES.md#beginner-dont-use-x-forwarded-proto-with-scheme-behind-reverse-proxy)<br><sup>Prevent pass incorrect value of this header.</sup> | Reverse Proxy | ![high](static/img/priorities/high.png) |
@@ -1117,7 +1252,8 @@ Remember, these are only guidelines. My point of view may be different from your
 | [Use reload option to change configurations on the fly](doc/RULES.md#beginner-use-reload-option-to-change-configurations-on-the-fly)<br><sup>Graceful reload of the configuration without stopping the server and dropping any packets.</sup> | Base Rules | ![medium](static/img/priorities/medium.png) |
 | [Use return directive for URL redirection (301, 302)](doc/RULES.md#beginner-use-return-directive-for-url-redirection-301-302)<br><sup>The by far simplest and fastest because there is no regexp that has to be evaluated.</sup> | Base Rules | ![medium](static/img/priorities/medium.png) |
 | [Maintaining SSL sessions](doc/RULES.md#beginner-maintaining-ssl-sessions)<br><sup>Improves performance from the clients’ perspective.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
-| [Use exact names in a server_name directive where possible](doc/RULES.md#beginner-use-exact-names-in-a-server_name-directive-where-possible)<br><sup>Helps speed up searching using exact names.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
+| [Enable OCSP Stapling](doc/RULES.md#beginner-enable-ocsp-stapling)<br><sup>Enable to reduce the cost of an OCSP validation.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
+| [Use exact names in a server_name directive if possible](doc/RULES.md#beginner-use-exact-names-in-a-server_name-directive-if-possible)<br><sup>Helps speed up searching using exact names.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
 | [Avoid checks server_name with if directive](doc/RULES.md#beginner-avoid-checks-server_name-with-if-directive)<br><sup>It decreases NGINX processing requirements.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
 | [Use $request_uri to avoid using regular expressions](doc/RULES.md#beginner-use-request_uri-to-avoid-using-regular-expressions)<br><sup>By default, the regex is costly and will slow down the performance.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
 | [Use try_files directive to ensure a file exists](doc/RULES.md#beginner-use-try_files-directive-to-ensure-a-file-exists)<br><sup>Use it if you need to search for a file, it saving duplication of code also.</sup> | Performance | ![medium](static/img/priorities/medium.png) |
@@ -1127,17 +1263,18 @@ Remember, these are only guidelines. My point of view may be different from your
 | [Disable unnecessary modules](doc/RULES.md#beginner-disable-unnecessary-modules)<br><sup>Limits vulnerabilities, improve performance and memory efficiency.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Hide Nginx version number](doc/RULES.md#beginner-hide-nginx-version-number)<br><sup>Don't disclose sensitive information about NGINX.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Hide Nginx server signature](doc/RULES.md#beginner-hide-nginx-server-signature)<br><sup>Don't disclose sensitive information about NGINX.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
-| [Use only the latest supported OpenSSL version](doc/RULES.md#beginner-use-only-the-latest-supported-openssl-version)<br><sup>Stay protected from SSL security threats and don't miss out new features.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
+| [Use only the latest supported OpenSSL version](doc/RULES.md#beginner-use-only-the-latest-supported-openssl-version)<br><sup>Stay protected from SSL security threats and don't miss out of new features.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Prevent Replay Attacks on Zero Round-Trip Time](doc/RULES.md#beginner-prevent-replay-attacks-on-zero-round-trip-time)<br><sup>0-RTT is disabled by default but you should know that enabling this option creates a significant security risks.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Mitigation of CRIME/BREACH attacks](doc/RULES.md#beginner-mitigation-of-crimebreach-attacks)<br><sup>Disable HTTP compression or compress only zero sensitive content.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Deny the use of browser features (Feature-Policy)](doc/RULES.md#beginner-deny-the-use-of-browser-features-feature-policy)<br><sup>A mechanism to allow and deny the use of browser features.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Control Buffer Overflow attacks](doc/RULES.md#beginner-control-buffer-overflow-attacks)<br><sup>Prevents errors are characterised by the overwriting of memory fragments of the NGINX process.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Mitigating Slow HTTP DoS attacks (Closing Slow Connections)](doc/RULES.md#beginner-mitigating-slow-http-dos-attack-closing-slow-connections)<br><sup>Prevents attacks in which the attacker sends HTTP requests in pieces slowly.</sup> | Hardening | ![medium](static/img/priorities/medium.png) |
 | [Set and pass Host header only with $host variable](doc/RULES.md#beginner-set-and-pass-host-header-only-with-host-variable)<br><sup>Use of the $host is the only one guaranteed to have something sensible.</sup> | Reverse Proxy | ![medium](static/img/priorities/medium.png) |
-| [Always pass Host, X-Real-IP, and X-Forwarded headers to the backend](doc/RULES.mdbeginner-always-pass-host-x-real-ip-and-x-forwarded-headers-to-the-backend)<br><sup>It gives you more control of forwarded headers.</sup> | Reverse Proxy | ![medium](static/img/priorities/medium.png) |
+| [Always pass Host, X-Real-IP, and X-Forwarded headers to the backend](doc/RULES.md#beginner-always-pass-host-x-real-ip-and-x-forwarded-headers-to-the-backend)<br><sup>It gives you more control of forwarded headers.</sup> | Reverse Proxy | ![medium](static/img/priorities/medium.png) |
+| [Set the certificate chain correctly](doc/RULES.md#beginner-set-the-certificate-chain-correctly)<br><sup>Send the complete chain to the client.</sup> | Others | ![medium](static/img/priorities/medium.png) |
 | [Enable DNS CAA Policy](doc/RULES.md#beginner-enable-dns-caa-policy)<br><sup>Allows domain name holders to indicate to CA whether they are authorized to issue digital certificates.</sup> | Others | ![medium](static/img/priorities/medium.png) |
-| [Separate listen directives for 80 and 443](doc/RULES.md#beginner-separate-listen-directives-for-80-and-443)<br><sup>Help you maintain and modify your configuration.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
-| [Use only one SSL config for the listen directive](doc/RULES.md#beginner-use-only-one-ssl-config-for-the-listen-directive)<br><sup>The most of the SSL changes will affect only the default server.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
+| [Separate listen directives for 80 and 443 ports](doc/RULES.md#beginner-separate-listen-directives-for-80-and-443-ports)<br><sup>Help you maintain and modify your configuration.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
+| [Use only one SSL config for the listen directive](doc/RULES.md#beginner-use-only-one-ssl-config-for-the-listen-directive)<br><sup>Prevents multiple configurations on the same listening address.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
 | [Use geo/map modules instead of allow/deny](doc/RULES.md#beginner-use-geomap-modules-instead-of-allowdeny)<br><sup>Provides the perfect way to block invalid visitors.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
 | [Set global root directory for unmatched locations](doc/RULES.md#beginner-set-global-root-directory-for-unmatched-locations)<br><sup>Specifies the root directory for an undefined locations.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
 | [Don't duplicate index directive, use it only in the http block](doc/RULES.md#beginner-dont-duplicate-index-directive-use-it-only-in-the-http-block)<br><sup>Watch out for duplicating the same rules.</sup> | Base Rules | ![low](static/img/priorities/low.png) |
@@ -1153,17 +1290,19 @@ Remember, these are only guidelines. My point of view may be different from your
 | [Use debug mode to track down unexpected behaviour](doc/RULES.md#beginner-use-debug-mode-to-track-down-unexpected-behaviour)<br><sup>There's probably more detail than you want, but that can sometimes be a lifesaver.</sup> | Debugging | ![info](static/img/priorities/info.png) |
 | [Improve debugging by disable daemon, master process, and all workers except one](doc/RULES.md#beginner-improve-debugging-by-disable-daemon-master-process-and-all-workers-except-one)<br><sup>This simplifies the debugging and lets test configurations rapidly.</sup> | Debugging | ![info](static/img/priorities/info.png) |
 | [Use core dumps to figure out why NGINX keep crashing](doc/RULES.md#beginner-use-core-dumps-to-figure-out-why-nginx-keep-crashing)<br><sup>Enable core dumps when your NGINX instance receive an unexpected error or when it crashed.</sup> | Debugging | ![info](static/img/priorities/info.png) |
+| [Use mirror module to copy requests to another backend](doc/RULES.md#beginner-use-mirror-module-to-copy-requests-to-another-backend)<br><sup>Use mirroring for investigation and debugging of any original request.</sup> | Debugging | ![info](static/img/priorities/info.png) |
 | [Don't disable backends by comments, use down parameter](doc/RULES.md#beginner-dont-disable-backends-by-comments-use-down-parameter)<br><sup>Is a good solution to marks the server as permanently unavailable.</sup> | Load Balancing | ![info](static/img/priorities/info.png) |
+| [Use tcpdump to diagnose and troubleshoot the HTTP issues](doc/RULES.md#beginner-use-tcpdump-to-diagnose-and-troubleshoot-the-http-issues)<br><sup>Use tcpdump to monitor HTTP.</sup> | Others | ![info](static/img/priorities/info.png) |
 
 # Bonus Stuff
 
-You can find here a few of the different things I've worked and included to this repository. I hope that these extras will be useful to you.
+You can find here a few of the different things I've worked and included to this repository. I hope that these extras will be useful.
 
 ## Configuration reports
 
 Many of these recipes have been applied to the configuration of my old private website.
 
-  > An example configuration is in [configuration examples](#configuration-examples) chapter. It's also based on [this](https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/cheatsheets/nginx-hardening-cheatsheet-tls13.png) version of printable high-res hardening cheatsheets.
+  > An example configuration is in the [configuration examples](#configuration-examples) chapter. It's also based on [this](https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/cheatsheets/nginx-hardening-cheatsheet-tls13.png) version of printable high-res hardening cheatsheets.
 
 ### SSL Labs
 
@@ -1180,7 +1319,7 @@ I finally got **A+** grade and following scores:
 - Key Exchange = **90%**
 - Cipher Strength = **90%**
 
-Look also at the following recommendations. In my opinion, the right configuration of NGINX should give the following SSL Labs scores:
+Look also at the following recommendations. I believe the right configuration of NGINX should give the following SSL Labs scores and provides the best security for the most cases:
 
 - **Recommended**
 
@@ -1202,11 +1341,15 @@ Look also at the following recommendations. In my opinion, the right configurati
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/blkcipher_ssllabs_preview.png" alt="blkcipher_ssllabs_preview">
 </p>
 
+Something about SSL Labs grading mechanism (that's an interesting point of view):
+
+  > _The whole grading mechanism is more propaganda and public relations than actual security. If you want good security, then you must mind the details and understand how things work internally. If you want a good grade then you should do whatever it takes to have a good grade. An "A+" from SSL Labs is a very nifty thing to add at the end of a report, but it does not really equate with having rock solid security. Having an "A+" equates with being able to say "I have an A+"._ - from [this](https://security.stackexchange.com/a/112539) answer by [Tom Leek](https://security.stackexchange.com/users/5411/tom-leek).
+
 ### Mozilla Observatory
 
   > Read about Mozilla Observatory [here](https://observatory.mozilla.org/faq/) and about [Observatory Scoring Methodology](https://github.com/mozilla/http-observatory/blob/master/httpobs/docs/scoring.md).
 
-I also got the highest note on the Observatory:
+I also got the highest summary note (**A+**) on the Observatory with a very high test score (120/100, max. 135/100):
 
 <p align="center">
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/blkcipher_mozilla_observatory_preview.png" alt="blkcipher_mozilla_observatory_preview">
@@ -1216,11 +1359,11 @@ I also got the highest note on the Observatory:
 
 I created two versions of printable posters with hardening cheatsheets (High-Res 5000x8800) based on recipes from this handbook:
 
-  > For `*.xcf` and `*.pdf` formats please see [this](https://github.com/trimstray/nginx-admins-handbook/tree/master/static/img) directory.
+  > For `xcf` and `pdf` formats please see [this](https://github.com/trimstray/nginx-admins-handbook/tree/master/static/img) directory.
 
 - **A+** with all **100%’s** on @ssllabs and **120/100** on @mozilla observatory:
 
-  > It provides the highest scores of the SSL Labs test. Setup is very restrictive with 4096-bit private key, only TLS 1.2, and also modern strict TLS cipher suites (non 128-bits).
+  > It provides the highest scores of the SSL Labs test. Setup is very restrictive with 4096-bit private key, only TLS 1.2, and also modern strict TLS cipher suites (non 128-bits). Think carefully about its use (no TLS 1.3, restrictive cipher suites), in my opinion, it is only suitable for obtaining the highest possible rating and seems a little impractical.
 
 <p align="center">
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/cheatsheets/nginx-hardening-cheatsheet-tls12-100p.png" alt="nginx-hardening-cheatsheet-100p" width="92%" height="92%">
@@ -1228,7 +1371,7 @@ I created two versions of printable posters with hardening cheatsheets (High-Res
 
 - **A+** on @ssllabs and **120/100** on @mozilla observatory with TLS 1.3 support:
 
-  > It provides less restrictive setup with 2048-bit private key, TLS 1.3 and 1.2, and also modern strict TLS cipher suites (128/256-bits). The final grade is also in line with the industry standards. Recommend using this configuration.
+  > It provides less restrictive setup with 2048-bit key for `RSA` or 256-bit key for `ECC`, TLS 1.3 and 1.2, modern strict TLS cipher suites (128/256-bits), and 2048-bit predefined `DH` groups recommended by Mozilla. The final grade is also in line with the industry standards and guidance. Recommend using this, for me, it is very reasonable configuration.
 
 <p align="center">
   <img src="https://github.com/trimstray/nginx-admins-handbook/blob/master/static/img/cheatsheets/nginx-hardening-cheatsheet-tls13.png" alt="nginx-hardening-cheatsheet-tls13" width="92%" height="92%">
@@ -1238,21 +1381,33 @@ I created two versions of printable posters with hardening cheatsheets (High-Res
 
 I created a set of scripts for unattended installation of NGINX from the raw, uncompiled code. It allows you to easily install, create a setup for dependencies (like `zlib` or `openssl`), and customized with installation parameters.
 
-For more information please see [Installing from source - Automatic installation](#automatic-installation) chapter.
+For more information please see [Installing from source - Automatic installation](https://github.com/trimstray/nginx-admins-handbook/tree/master/lib) chapter which describes the installation of NGINX on systems/distros such as Ubuntu, Debian, CentOS, and FreeBSD.
 
 ## Static error pages generator
 
-I created a simple to use generator for static pages with errors to replace the default error pages that comes with any web server like NGINX.
+I created a simple to use generator for static pages to replace the default error pages that comes with any web server like NGINX.
 
 For more information please see [HTTP Static Error Pages Generator](https://github.com/trimstray/nginx-admins-handbook/tree/master/lib/nginx/snippets/http-error-pages#http-static-error-pages-generator).
 
 ## Server names parser
 
-I added scripts for fast multiple domain searching in the configuration. These tools get specific `server_name` matches and print them on the screen as a `server { ... }` blocks. Both are very helpful if you really have tons of domains or if you want to list specific vhosts in NGINX.
+I added scripts for fast multiple domain searching in the configuration. These tools get specific `server_name` matches and print them on the screen as a `server { ... }` blocks. Both are very helpful if you really have tons of domains or if you want to list specific vhosts from file or the active configuration.
 
-For example:
+You must follow one important rule to be able to use it. Your server block must have the following structure:
 
-```bash
+```nginx
+server {
+
+  server_name example.com example.org;
+
+  ... # other directives
+
+}
+```
+
+Example of use:
+
+```
 ./snippets/server-name-parser/check-server-name.sh example.com
 Searching 'example.com' in '/usr/local/etc/nginx' (from disk)
 
@@ -1376,12 +1531,15 @@ _In this ebook you will learn:_
 &nbsp;&nbsp;:black_small_square: <a href="https://www.nginx.com/resources/wiki/"><b>Nginx Wiki</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://docs.nginx.com/nginx/admin-guide/"><b>Nginx Admin's Guide</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/"><b>Nginx Pitfalls and Common Mistakes</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="http://nginx.org/en/docs/dev/development_guide.html"><b>Development guide</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="http://nginx.org/en/docs/dev/development_guide.html"><b>Development Guide</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://forum.nginx.org/"><b>Nginx Forum</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="http://nginx.org/en/security_advisories.html"><b>Nginx Security Advisories</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://docs.nginx.com/nginx/admin-guide/security-controls/"><b>Nginx Security Controls</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://mailman.nginx.org/mailman/listinfo/nginx"><b>Nginx Mailing List</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/nginx/nginx"><b>Nginx Read-only Mirror</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/nginxinc/NGINX-Demos"><b>NGINX-Demos
 </b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://www.nginx.com/blog/thread-pools-boost-performance-9x/"><b>Thread Pools in NGINX Boost Performance 9x!</b></a><br>
 </p>
 
 ##### Nginx distributions
@@ -1421,22 +1579,18 @@ _In this ebook you will learn:_
 <p>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/denji/nginx-tuning"><b>Nginx Tuning For Best Performance by Denji</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://thoughts.t37.net/nginx-optimization-understanding-sendfile-tcp-nodelay-and-tcp-nopush-c55cdd276765"><b>Nginx Optimization: understanding sendfile, tcp_nodelay and tcp_nopush</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://blog.cloudflare.com/how-we-scaled-nginx-and-saved-the-world-54-years-every-day/"><b>How we scaled nginx and saved the world 54 years every day</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://istlsfastyet.com/"><b>TLS has exactly one performance problem: it is not used widely enough</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.ssllabs.com/projects/best-practices/"><b>SSL/TLS Deployment Best Practices</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.ssllabs.com/projects/rating-guide/index.html"><b>SSL Server Rating Guide</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://www.ssllabs.com/ssl-pulse/"><b>SSL Pulse</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.upguard.com/blog/how-to-build-a-tough-nginx-server-in-15-steps"><b>How to Build a Tough NGINX Server in 15 Steps</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.cyberciti.biz/tips/linux-unix-bsd-nginx-webserver-security.html"><b>Top 25 Nginx Web Server Best Security Practices</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://calomel.org/nginx.html"><b>Nginx Secure Web Server</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://cipherli.st/"><b>Strong ciphers for Apache, Nginx, Lighttpd and more</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html"><b>Strong SSL Security on Nginx</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://enable-cors.org/index.html"><b>Enable cross-origin resource sharing (CORS)</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/nbs-system/naxsi"><b>NAXSI - WAF for Nginx</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://geekflare.com/install-modsecurity-on-nginx/"><b>ModSecurity for Nginx</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Protection_Cheat_Sheet.html"><b>Transport Layer Protection Cheat Sheet by OWASP</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://wiki.mozilla.org/Security/Server_Side_TLS"><b>Security/Server Side TLS by Mozilla</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://bettercrypto.org/"><b>Applied Crypto Hardening</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://caniuse.com/#home"><b>Browser support tables for modern web technologies</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://badssl.com/"><b>Memorable site for testing clients against bad SSL configs</b></a><br>
 </p>
 
 ##### Presentations & Videos
@@ -1453,12 +1607,15 @@ _In this ebook you will learn:_
 &nbsp;&nbsp;:black_small_square: <a href="https://www.slideshare.net/TonyFabeen/nginx-scripting-extending-nginx-functionalities-with-lua"><b>Nginx Scripting - Extending Nginx Functionalities with Lua</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.slideshare.net/kazeburo/advanced-nginx-in-mercari-how-to-handle-over-1200000-https-reqsmin"><b>How to handle over 1,200,000 HTTPS Reqs/Min</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.slideshare.net/harukayon/ngx-lua-public"><b>Using ngx_lua / lua-nginx-module in pixiv</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://mdounin.ru/files/mdounin-nginx-whatsnew-nginxconf2018.pdf"><b>Reading nginx CHANGES together</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://mdounin.ru/files/mdounin-dynamic-modules-nginxconf2016.pdf"><b>Dynamic modules:how it works</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/playlist?list=PLGz_X9w9raXewvc6tjIGGFZ6DBKHEld3k"><b>NGINX Conf 2014</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/playlist?list=PLGz_X9w9raXdED9BR6GQ61A6d3fBzjpbn"><b>NGINX Conf 2015</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/playlist?list=PLGz_X9w9raXcOsB_dT26iu0BvbSxWYG1g"><b>NGINX Conf 2016</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/playlist?list=PLGz_X9w9raXeT-z_rcZ9yF0kV5SENZ-yt"><b>NGINX Conf 2017</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/playlist?list=PLGz_X9w9raXeHhKRX6ZS7vmFKN12iYOw9"><b>NGINX Conf 2018 | Deep Dive Track</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/playlist?list=PLGz_X9w9raXe_Vc708VKvr5KJ4gnf1WxS"><b>NGINX Conf 2018 | Keynotes and Sessions</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://www.youtube.com/watch?v=iHxD-G0YjiU"><b>Making HTTPS Fast(er): Ilya Grigorik @ nginx.conf 2014</b></a><br>
 </p>
 
 ##### Playgrounds
@@ -1564,6 +1721,9 @@ _In this ebook you will learn:_
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/mozilla/cipherscan"><b>cipherscan</b></a> - is a very simple way to find out which SSL ciphersuites are supported by a target.<br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/OWASP/O-Saft"><b>O-Saft</b></a> - OWASP SSL advanced forensic tool.<br>
 &nbsp;&nbsp;:black_small_square: <a href="https://nghttp2.org/"><b>Nghttp2</b></a> - is an implementation of HTTP/2 and its header compression algorithm HPACK in C.<br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/summerwind/h2spec"><b>h2spec</b></a> - is a conformance testing tool for HTTP/2 implementation.<br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/gildasio/h2t"><b>h2t</b></a> - is a simple tool to help sysadmins to hardening their websites.<br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/c0nrad/http2fuzz"><b>http2fuzz</b></a> - HTTP/2 fuzzer written in Golang.<br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/s0md3v/Arjun"><b>Arjun</b></a> - HTTP parameter discovery suite.<br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/s0md3v/Corsy"><b>Corsy</b></a> - CORS misconfiguration scanner.<br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/s0md3v/XSStrike"><b>XSStrike</b></a> - most advanced XSS scanner.<br>
@@ -1589,11 +1749,15 @@ _In this ebook you will learn:_
 
 <p>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.ssllabs.com/ssltest/"><b>SSL Server Test by SSL Labs</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://www.ssllabs.com/ssltest/viewMyClient.html"><b>SSL/TLS Capabilities of Your Browser</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.htbridge.com/ssl/"><b>Test SSL/TLS (PCI DSS, HIPAA and NIST)</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://sslanalyzer.comodoca.com/"><b>SSL analyzer and certificate checker</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://decoder.link"><b>Tools for testing SSL configuration</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://tls.imirhil.fr/"><b>Test your TLS server configuration (e.g. ciphers)</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.jitbit.com/sslcheck/"><b>Scan your website for non-secure content</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="http://www.ssltools.com"><b>Analyze website security</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://ciphersuite.info/"><b>TLS Cipher Suite Search</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://www.ssllabs.com/ssltest/viewMyClient.html"><b>SSL/TLS Capabilities of Your Browser</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://suche.org/sslClientInfo"><b>SSL-Client Info's</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://2ton.com.au/dhtool/"><b>Public Diffie-Hellman Parameter Service/Tool</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://securityheaders.com/"><b>Analyse the HTTP response headers by Security Headers</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://observatory.mozilla.org/"><b>Analyze your website by Mozilla Observatory</b></a><br>
@@ -1615,20 +1779,35 @@ _In this ebook you will learn:_
 
 <p>
 &nbsp;&nbsp;:black_small_square: <a href="https://developer.mozilla.org/en-US/docs/Web"><b>Web technology for developers</b></a><br>
-&nbsp;&nbsp;:black_small_square: <a href="https://cheatsheetseries.owasp.org/"><b>OWASP Cheat Sheet Series</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://infosec.mozilla.org/guidelines/web_security.html"><b>Mozilla Web Security</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://appsecwiki.com/#/"><b>Application Security Wiki</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://www.owasp.org/index.php/Category:OWASP_Application_Security_Verification_Standard_Project"><b>OWASP ASVS 3.0.1</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/Santandersecurityresearch/asvs"><b>OWASP ASVS 3.0.1 Web App</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/OWASP/ASVS/tree/master/4.0"><b>OWASP ASVS 4.0</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.owasp.org/index.php/OWASP_Proactive_Controls"><b>OWASP Top 10 Proactive Controls 2018.</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://www.owasp.org/index.php/OWASP_Testing_Project"><b>OWASP Testing Guide v4</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/OWASP/DevGuide"><b>OWASP Dev Guide</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Protection_Cheat_Sheet.html"><b>Transport Layer Protection Cheat Sheet by OWASP</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/OWASP/wstg"><b>OWASP WSTG</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://wiki.mozilla.org/Security/Server_Side_TLS"><b>Security/Server Side TLS by Mozilla</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://bettercrypto.org/"><b>Applied Crypto Hardening</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://caniuse.com/#home"><b>Browser support tables for modern web technologies</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://badssl.com/"><b>Memorable site for testing clients against bad SSL configs</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://https.cio.gov/"><b>The HTTPS-Only Standard</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://portswigger.net/web-security"><b>The Web Security Academy</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://portswigger.net/kb/issues"><b>Burp Scanner - Issue Definitions</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://odino.org/wasec-web-application-security-what-to-do-when-dot-dot-dot/"><b>Web application security: what to do when...</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml"><b>Transport Layer Security (TLS) Parameters</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/GrrrDog/TLS-Redirection#technical-details"><b>TLS Redirection (and Virtual Host Confusion)</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.acunetix.com/blog/articles/tls-vulnerabilities-attacks-final-part/"><b>TLS Security 6: Examples of TLS Vulnerabilities and Attacks</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.veracode.com/blog/2014/03/guidelines-for-setting-security-headers"><b>Guidelines for Setting Security Headers</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://infosec.mozilla.org/guidelines/web_security.html"><b>Mozilla Guidelines - Web Security</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://medium.freecodecamp.org/secure-your-web-application-with-these-http-headers-fd66e0367628"><b>Secure your web application with these HTTP headers</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://zinoui.com/blog/security-http-headers"><b>Security HTTP Headers</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/GrrrDog/weird_proxies/wiki"><b>Analysis of various reverse proxies, cache proxies, load balancers, etc.</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://howhttps.works/"><b>How HTTPS works ...in a comic!</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.regular-expressions.info/"><b>Regular-Expressions</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://github.com/attackercan/REGEXP-SECURITY-CHEATSHEET"><b>Regexp Security Cheatsheet</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://nickcraver.com/blog/2017/05/22/https-on-stack-overflow/#the-beginning"><b>HTTPS on Stack Overflow: The End of a Long Road</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://www.aosabook.org/en/nginx.html"><b>The Architecture of Open Source Applications - Nginx</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="http://www.bbc.co.uk/blogs/internet/entries/17d22fb8-cea2-49d5-be14-86e7a1dcde04"><b>BBC Digital Media Distribution: How we improved throughput by 4x</b></a><br>
@@ -1640,6 +1819,7 @@ _In this ebook you will learn:_
 &nbsp;&nbsp;:black_small_square: <a href="https://engineering.videoblocks.com/web-architecture-101-a3224e126947"><b>Web Architecture 101</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.com/leandromoreira/linux-network-performance-parameters"><b>Learn where some of the network sysctl variables fit into the Linux/Kernel network flow</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://suniphrase.wordpress.com/2015/10/27/jemalloc-vs-tcmalloc-vs-dlmalloc/"><b>jemalloc vs tcmalloc vs dlmalloc</b></a><br>
+&nbsp;&nbsp;:black_small_square: <a href="https://arxiv.org/pdf/1905.01135.pdf"><b>On the Impact of Memory Allocation on High-Performance Query Processing</b></a><br>
 &nbsp;&nbsp;:black_small_square: <a href="https://github.blog/2018-08-08-glb-director-open-source-load-balancer/"><b>GLB: GitHub’s open source load balancer</b></a><br>
 </p>
 
@@ -1648,27 +1828,27 @@ _In this ebook you will learn:_
 Go back to the [Table of Contents](#table-of-contents) or read the next chapters:
 
 - **[HTTP Basics](doc/HTTP_BASICS.md#http-basics)**<a id="toc-http-basics-2"></a>
-  > Something about HTTP.
+  > Introduction to HTTP.
 - **[SSL/TLS Basics](doc/SSL_TLS_BASICS.md#ssltls-basics)**<a id="toc-ssltls-basics-2"></a>
-  > Something about SSL/TLS.
+  > Introduction to SSL/TLS.
 - **[NGINX Basics](doc/NGINX_BASICS.md#nginx-basics)**<a id="toc-nginx-basics-2"></a>
-  > Explanation of the NGINX mechanisms.
+  > Introduction and explanation of the NGINX mechanisms.
 - **[Helpers](doc/HELPERS.md#helpers)**<a id="toc-helpers-2"></a>
-  > One-liners, commands, utilities for building NGINX, and more
-- **[Base Rules (14)](doc/RULES.md#base-rules)**<a id="toc-base-rules-2"></a>
+  > One-liners, commands, utilities for building NGINX, and more.
+- **[Base Rules (16)](doc/RULES.md#base-rules)**<a id="toc-base-rules-2"></a>
   > The basic set of rules to keep NGINX in a good condition.
-- **[Debugging (4)](doc/RULES.md#debugging)**<a id="toc-debugging-2"></a>
+- **[Debugging (5)](doc/RULES.md#debugging)**<a id="toc-debugging-2"></a>
   > A few things for troubleshooting configuration problems.
-- **[Performance (12)](doc/RULES.md#performance)**<a id="toc-performance-2"></a>
+- **[Performance (13)](doc/RULES.md#performance)**<a id="toc-performance-2"></a>
   > Many methods to make sure the NGINX as fast as possible.
-- **[Hardening (28)](doc/RULES.md#hardening)**<a id="toc-hardening-2"></a>
-  > Hardening approaches and security standards.
+- **[Hardening (31)](doc/RULES.md#hardening)**<a id="toc-hardening-2"></a>
+  > Security and hardening methods in line with best practices.
 - **[Reverse Proxy (8)](doc/RULES.md#reverse-proxy)**<a id="toc-reverse-proxy-2"></a>
   > A few rules about the NGINX proxy server.
 - **[Load Balancing (2)](doc/RULES.md#load-balancing)**<a id="toc-load-balancing-2"></a>
-  > You may improve of some rules about the NGINX working as a load balancer.
-- **[Others (2)](doc/RULES.md#others)**<a id="toc-others-2"></a>
-  > Something about other interesting rules.
+  > Some rules to improve NGINX as a load balancer.
+- **[Others (4)](doc/RULES.md#others)**<a id="toc-others-2"></a>
+  > Other interesting rules, not necessarily linked to NGINX.
 - **[Configuration Examples](doc/EXAMPLES.md#configuration-examples)**<a id="toc-configuration-examples-2"></a>
   > Here are some configuration examples.
 
